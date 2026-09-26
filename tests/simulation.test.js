@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DT, START, encounter, planetCount, createFlight, advance, predict, launchVector, dailySeed } from '../web/simulation.js';
+import { DT, START, encounter, planetCount, gravityAcceleration, createFlight, advance, predict, launchVector, dailySeed } from '../web/simulation.js';
 const empty = () => ({ planets: [], hazards: [], pickups: [], gate: { x: 200, y: 97, radius: 31 } });
 test('preview equals authoritative live flight for every displayed sample', () => {
   for (let seed = 1; seed <= 12; seed++) for (let sector = 1; sector <= 12; sector++) {
@@ -16,6 +16,12 @@ test('generator repeats identical encounters and does not mutate inputs', () => 
 });
 test('drag deadzone and maximum launch speed', () => {
   assert.equal(launchVector(1, 1), null); const v = launchVector(1000, 1000); assert.ok(Math.abs(Math.hypot(v.vx, v.vy) - 368) < 1e-9); assert.ok(v.vx < 0 && v.vy < 0);
+});
+test('gravity is stronger close up and remains stronger farther out; exit is wider', () => {
+  const mass = 150000;
+  for (const distance of [70, 180, 350]) assert.ok(gravityAcceleration(mass, distance) > mass / (distance * distance) * 1.4);
+  assert.ok(gravityAcceleration(mass, 70) > gravityAcceleration(mass, 180));
+  assert.equal(encounter(57, 1).gate.radius, 27);
 });
 test('swept collisions prevent tunneling and terminate before rewards', () => {
   const w = empty(); w.planets = [{ x: 200, y: 500, radius: 20, mass: 0 }]; w.pickups = [{ x: 200, y: 500, radius: 9 }];

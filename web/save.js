@@ -24,6 +24,13 @@ export const SKINS = [
   { id: 'flare', name: 'Needle', color: '#ffe0a0', shape: 'needle', price: 120 },
   { id: 'orbit', name: 'Starling', color: '#93bbff', shape: 'starling', price: 180 }
 ];
+export const SHIP_OUTLINES = {
+  scout: [[0, -12], [4, -4], [10, 4], [8, 7], [3, 5], [0, 9], [-3, 5], [-8, 7], [-10, 4], [-4, -4]],
+  arrow: [[0, -14], [4, -5], [7, 9], [0, 5], [-7, 9], [-4, -5]],
+  manta: [[0, -11], [4, -4], [12, -1], [13, 6], [4, 4], [0, 9], [-4, 4], [-13, 6], [-12, -1], [-4, -4]],
+  needle: [[0, -15], [3, -6], [4, 8], [0, 5], [-4, 8], [-3, -6]],
+  starling: [[0, -12], [3, -7], [9, -9], [7, -1], [11, 7], [3, 4], [0, 9], [-3, 4], [-11, 7], [-7, -1], [-9, -9], [-3, -7]]
+};
 export function buySkin(save, id) {
   const skin = SKINS.find(s => s.id === id);
   if (!skin) return false;

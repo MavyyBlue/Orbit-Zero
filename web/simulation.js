@@ -11,6 +11,12 @@ export function dailySeed(date = new Date()) {
   return [...key].reduce((a, c) => Math.imul(a ^ c.charCodeAt(0), 16777619) >>> 0, 2166136261);
 }
 const PLANET_TYPES = ['ember', 'ice', 'jade', 'violet', 'sand'];
+// Stronger close pull plus a broad outer skirt; used by both play and prediction.
+export const GRAVITY_REACH = 250;
+export function gravityAcceleration(mass, distance) {
+  const d = Math.max(12, distance);
+  return mass / (d * d) * (1.25 + .9 * d / (d + GRAVITY_REACH / 2));
+}
 const cache = new Map();
 export function planetCount(seed, sector, mode = 'voyage') {
   if (mode === 'endless') return 3 + Math.floor(rng((seed ^ Math.imul(sector, 0x45d9f3b)) >>> 0)() * 3);
@@ -52,7 +58,7 @@ function routeFor(planets, count) {
         if (i % 5 === 0 && s.y < 475 && s.y > 82) points.push({ x: s.x, y: s.y });
       }
       const gatePoint = points.findLast(p => p.y > 100 && p.y < 120 && p.x > 45 && p.x < 355 &&
-        obscured(p, planets, 22) && planets.every(q => Math.hypot(q.x - p.x, q.y - p.y) > q.radius + 26));
+        obscured(p, planets, 27) && planets.every(q => Math.hypot(q.x - p.x, q.y - p.y) > q.radius + 31));
       if (!gatePoint) continue;
       const pickups = [];
       for (const target of targets) {
@@ -63,7 +69,7 @@ function routeFor(planets, count) {
         pickups.push({ ...p, radius: 9 });
       }
       if (pickups.length !== targets.length) continue;
-      const gate = { ...gatePoint, radius: 22 };
+      const gate = { ...gatePoint, radius: 27 };
       const world = { planets, pickups, gate, hazards: [] };
       // Reject paths whose gate triggers before the stars can all be collected.
       const check = createFlight(velocity);
@@ -116,8 +122,8 @@ export function advance(s, world, dt = DT) {
   const ox = s.x, oy = s.y;
   let ax = 0, ay = 0;
   for (const p of world.planets) {
-    const dx = p.x - s.x, dy = p.y - s.y, d2 = Math.max(dx * dx + dy * dy, 144);
-    const f = p.mass / (d2 * Math.sqrt(d2)); ax += dx * f; ay += dy * f;
+    const dx = p.x - s.x, dy = p.y - s.y, d = Math.max(Math.hypot(dx, dy), 12);
+    const f = gravityAcceleration(p.mass, d) / d; ax += dx * f; ay += dy * f;
   }
   s.vx += ax * dt; s.vy += ay * dt; s.x += s.vx * dt; s.y += s.vy * dt; s.age += dt;
   if (![s.x, s.y, s.vx, s.vy].every(Number.isFinite)) { s.status = 'lost'; return s; }

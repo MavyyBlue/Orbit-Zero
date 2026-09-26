@@ -28,9 +28,16 @@ Prediction clones initial flight state and calls the exact same `advance` functi
 and time step as live flight. No separately approximated ballistic curve. Preview
 ends after 2.1 simulated seconds or an earlier terminal event. Planet contact uses
 swept segment collision. Gravity is softened at short distance; it is an arcade
-model, not a scientific N-body solver. Physics does not depend on DOM, audio, or
+model, not a scientific N-body solver. Its broader inverse-square skirt boosts
+acceleration at near and far distances, while visual orbit rings suggest reach;
+the field has no hard cutoff. Planet mass and encounter route selection stay in
+the same simulation module. Physics does not depend on DOM, audio, or
 platform APIs. Fixed-step determinism is tested within the JS runtime; cross-engine
 bitwise equality is not claimed.
+
+The crash state stops live physics immediately, renders a brief impact effect,
+then opens the result. Pause/background stops that timer. The hangar's inline SVG
+icons and live Canvas ship both derive from `SHIP_OUTLINES` in `web/save.js`.
 
 Rendering caps DPR at 2 and trail length at 110. Long frames cap accumulated wall
 time at 100 ms, slowing simulation rather than skipping simulation steps. This

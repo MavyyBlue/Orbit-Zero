@@ -5,7 +5,7 @@ The owner expanded the initial bootstrap into one full playable-game attempt.
 
 | Phase | Direction | Candidate status |
 | --- | --- | --- |
-| 0 | Production Foundation and North Star | Imported, CI green at baseline SHA; new content revision pending upload |
+| 0 | Production Foundation and North Star | Imported, CI green at `2e88b300`; new feel revision pending upload |
 | 1 | Production-quality core flight/physics loop | Shared physics/preview implemented; feel audit pending |
 | 2 | Encounter generation and run structure | Three-to-five-planet seeded layouts and route-placed stars/gate; voyage/endless/daily implemented |
 | 3 | Scoring, mastery, and progression | Near-miss scoring, five unlockable ship shapes, achievement log implemented |
@@ -16,8 +16,6 @@ The owner expanded the initial bootstrap into one full playable-game attempt.
 | 8 | Performance/device certification | Pending |
 | 9 | Store preparation, monetization decision, launch candidate | Pending; monetization undecided |
 
-**Next bounded task:** Yuki reviews the imported exact-SHA candidate and successful
-CI evidence, then authorizes one phone-feel acceptance/correction slice focused on
-launch ergonomics, preview trust, near-miss feedback, and restart. Mio independently
-reviews correctness and the mobile ingestion/build evidence. Do not expand scope
-until the owner has actually played this candidate.
+**Next bounded task:** After exact-SHA CI, Yuki reviews phone feel for stronger
+gravity, wider exit, collision timing and hangar ship previews, then directs one
+correction slice for Akari. Mio independently reviews correctness and build evidence.

@@ -1,5 +1,17 @@
 # Changelog
 
+## Stronger orbits and feedback — pending owner import
+
+Strengthened near and distant planetary pull using the same authoritative
+physics for trajectory preview, live play and route generation. Expanded the
+visual gravity rings and exit radius from 22 to 27 units. Added a brief collision
+spark and tiny mushroom cloud before the result screen, respecting pause and
+reduced-motion timing. Hangar now previews the five ship silhouettes beside
+their names using the same shape data as the field. No save schema change.
+
+Built on green imported commit `2e88b300e9ed6e6edb64d60229de7ebdb45b006a`.
+New candidate awaits owner upload and exact-SHA CI/phone review.
+
 ## Gravity routes and ship silhouettes — pending owner import
 
 Added three to five varied gravitational planets per sector. Voyage and Daily

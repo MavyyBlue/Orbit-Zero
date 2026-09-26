@@ -1,28 +1,26 @@
 # Current state — 2026-09-26
 
 - Repository: `MavyyBlue/Orbit-Zero`; branch: `main`.
-- Last inspected live HEAD and green baseline: `25fc1c33ef0c08ddd59d3f77530ce925d5cdf2e2`.
-- GitHub Actions run #5 (`36264754513`) succeeded on that exact imported SHA: source and validate jobs, browser smoke, Android debug build and lint. The downloadable debug APK belongs to that baseline.
-- This document is in a **new source-ZIP revision pending owner upload**. The new candidate is identified by its package manifest and archive hash; its eventual imported Git SHA cannot be known from inside the ZIP. CI has not run against this revision.
-- Phase 0 foundation and broader playable implementation exist. No gameplay phase is independently certified by Mio or accepted as final architecture by Yuki.
+- Inspected live HEAD: `2e88b300e9ed6e6edb64d60229de7ebdb45b006a`.
+- GitHub Actions run #6 (`36266272282`) succeeded: source and validate jobs on the imported previous package, including browser smoke and Android build/lint. The APK artifact belongs to that earlier commit.
+- This document is part of a **new source-ZIP revision pending owner upload**. Its eventual imported Git SHA is unknown until upload; exact-SHA CI and phone validation have not run for it.
+- The playable game is an implementation candidate. Yuki remains architecture/game-direction authority, Akari normal implementation owner, Mio independent QA, and Mavyy final product authority.
 
-## Actually exists in this revision
+## This candidate contains
 
-Portable offline Canvas/JS game; pure fixed-step simulation shared with trajectory prediction; Voyage, Endless and Daily; three to five seeded gravitational planets per sector with five visual types; three collectible stars and an exit placed along a verified gravitational route and obscured from a straight launch sightline. Twelve-sector Voyage/Daily progress from three through four to five planets; Endless samples three to five each sector. Near-miss scoring, five unlockable small ship silhouettes with identical physics, four badges, local save/settings, synthesized effects and music, touch/button/keyboard aiming, pause/restart/ending/menu flows. Java Android host with local assets and bounded vibration. Build configuration, public development signing key, Node/Python/browser checks, packaging/import scripts and owner-installed workflow. No substantial code or gameplay from other projects was imported.
+Offline single-player Canvas/JS gravity flight with shared authoritative prediction; Android Java host; twelve-sector Voyage/Daily and Endless; three to five seeded planets per sector with varied visuals and three gravity-routed collectible stars; near-miss scoring; five cosmetic ship shapes purchased with earned stardust; local saves/settings; synthesized sound, music and bounded haptics. This revision strengthens gravity near and farther from planets, broadens its visual rings, enlarges the exit radius from 22 to 27 units, delays the result while a small collision spark/mushroom cloud plays, and shows actual ship silhouettes in the hangar. Save schema and signing identity are unchanged. No code or gameplay from other projects was imported.
 
-## Validation performed
+## Validation here
 
-- For this revision: JavaScript syntax and 16 Node tests passed, including a twelve-sector voyage, 48 sampled generated worlds with complete gravity routes, 30 Endless planet-count samples, 144 preview/live equivalence cases, and old-save compatibility. Five Python importer tests passed.
-- A narrow-screen Canvas render of a three-planet field was visually inspected locally.
-- For the previous, green baseline only: run #5 executed browser smoke and Android debug build/lint at `25fc1c33ef0c08ddd59d3f77530ce925d5cdf2e2`.
-- The final archive's manifest, excluded content and clean-import behavior are checked at packaging.
+- JavaScript syntax and 17 Node tests passed: full twelve-sector UI journey, 48 sampled gravity routes, 30 Endless sector samples, 144 preview/live equivalence cases, hangar icons, delayed crash result, gravity strength and gate radius, save compatibility.
+- Five Python importer tests passed. An additional 240 seeded sectors solved with all three stars; no route fallback observed in that sample.
+- The package manifest, archive checksum, clean import over current HEAD and workflow preservation are checked when packaging.
+- Run #6 validates the *previous* imported state, not these changes.
 
-## Not validated / known limits
+## Open validation and limits
 
-The new revision still requires owner ZIP upload and an exact-SHA GitHub run. Real-phone touch/feel, difficulty balance, performance on low-end devices, audio/haptics, upgrade installation and independent Mio audit remain open. Local Android SDK/Gradle and a browser runner are unavailable here. Reachability tests demonstrate a known solution for sampled worlds; they do not prove that all seeds are equally enjoyable or that every star is mandatory to exit. Every earned star is banked as stardust when the run ends, including crashes; five ship styles are cosmetic and have no physics advantage.
-
-This is a playable candidate, not a polished/store-certified release. No v0.0.2 source was imported; the owner's described feel reference guided it. Runs do not checkpoint across process death. Daily scores are local and use UTC. Cross-engine bitwise determinism, iOS host, release signing and store preparation remain open. Monetization remains undecided.
+New ZIP upload and exact imported-SHA GitHub CI are required before an APK from this revision exists. Physical-phone gravity feel, exit generosity, collision animation, hangar readability, low-end device performance, audio/haptics, update installation and independent Mio audit remain pending. Generated routes have a known tested solution for sampled worlds; unique solutions, uniform difficulty and mandatory star collection are not proven. There is no hard boundary to gravity; the broad rings are a visual cue and pull decays with distance. Runs do not checkpoint through process death. Daily scores are local UTC. iOS host, release signing and store work remain open; monetization undecided.
 
 ## Next bounded task
 
-Owner uploads the delivered archive to repository root as `orbit-zero-source.zip`. Inspect bootstrap run summary, imported candidate SHA, source/validate jobs and debug APK for that SHA. If green, Yuki leads a phone-feel/difficulty review of the three-to-five planet route and star/ship unlock economy; Akari addresses its first bounded correction and Mio independently audits evidence and regression. Preserve the public debug signing identity and app data during update installation.
+Mavyy uploads this archive as `orbit-zero-source.zip` at repository root, replacing the prior archive. Verify both jobs of its bootstrap run and record the actual imported SHA and APK artifact. Then Yuki leads a phone-feel review of gravity reach/strength, exit width, collision timing and five hangar icons; Akari addresses one bounded correction and Mio independently audits that exact candidate. Preserve app data and the public development signing key when updating the debug APK.

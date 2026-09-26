@@ -1,12 +1,12 @@
-import { W, H, DT, START, encounter, launchVector, createFlight, advance, predict, dailySeed, rng } from './simulation.js';
-import { loadSave, writeSave, SKINS, buySkin } from './save.js';
+import { W, H, DT, START, GRAVITY_REACH, encounter, launchVector, createFlight, advance, predict, dailySeed, rng } from './simulation.js';
+import { loadSave, writeSave, SKINS, SHIP_OUTLINES, buySkin } from './save.js';
 import { Sound } from './audio.js';
 const $ = id => document.getElementById(id), canvas = $('space'), ctx = canvas.getContext('2d');
 let storage; try { storage = window.localStorage; } catch { storage = null; }
 const loaded = loadSave(storage), save = loaded.save, sound = new Sound(save.settings);
 let phase = 'home', previous = 'aim', mode = 'voyage', seed = 1, sector = 1, total = 0, shards = 0, nears = 0, gates = 0;
 let world = encounter(1), flight = null, vector = null, drag = null, trail = [], particles = [], preview = null;
-let clock = 0, accumulator = 0, toastUntil = 0, transition = 0, width = 400, height = 720, scale = 1, offsetX = 0, offsetY = 0;
+let clock = 0, accumulator = 0, toastUntil = 0, transition = 0, impactAge = 0, width = 400, height = 720, scale = 1, offsetX = 0, offsetY = 0;
 let finished = false, assist = false, dailyKey = '', bestBefore = 0, settingsOrigin = 'home';
 const starRng = rng(9201), stars = Array.from({ length: 95 }, () => ({ x: starRng() * W, y: starRng() * H, r: starRng() * 1.1 + .25, a: starRng() * .45 + .2 }));
 function persist() { $('saveWarning').hidden = writeSave(storage, save); }
@@ -48,7 +48,7 @@ function aimFromControls() {
   vector = { vx: Math.sin(a) * speed, vy: -Math.cos(a) * speed }; preview = predict(vector, world);
 }
 function pause() {
-  if (!['aim', 'flight', 'transit'].includes(phase)) return;
+  if (!['aim', 'flight', 'transit', 'impact'].includes(phase)) return;
   previous = phase; phase = 'pause'; drag = null; accumulator = 0;
   showPanel(`<span class="eyebrow">TAKE A BREATH</span><h2>Orbit on hold.</h2><p>Your ship will wait.</p><button class="primary" id="resume">Resume flight ↗</button><button class="back" id="pauseSettings">Settings</button><button class="back" id="quit">End run</button>`);
   $('resume').onclick = resume; $('pauseSettings').onclick = () => settings('pause'); $('quit').onclick = () => finish(false, 'Run ended');
@@ -78,9 +78,13 @@ function settings(from = 'home') {
   for (const k of Object.keys(labels)) $(`set-${k}`).onclick = () => { save.settings[k] = !save.settings[k]; persist(); applySettings(); sound.unlock(); settings(from); };
   $('settingsBack').onclick = () => { if (from === 'pause') { phase = previous; pause(); } else home(); };
 }
+function shipIcon(style) {
+  const points = SHIP_OUTLINES[style.shape].map(([x, y]) => `${x + 16},${y + 17}`).join(' ');
+  return `<svg class="ship-icon" viewBox="0 0 32 34" aria-hidden="true"><polygon points="${points}" fill="${style.color}" stroke="#f5fffd" stroke-width="1.3"/><circle cx="16" cy="15" r="2.4" fill="#102339" stroke="#f5fffd" stroke-width=".7"/></svg>`;
+}
 function hangar() {
   phase = 'hangar';
-  showPanel(`<span class="eyebrow">YOUR LITTLE CORNER OF SPACE</span><h2>Hangar</h2><p>${save.shards} stardust · Ship styles only. Every ship flies identically.</p>${SKINS.map(s => `<div class="row"><span>${s.name}<small>${save.skin === s.id ? 'Equipped' : save.owned.includes(s.id) ? 'Owned' : `${s.price} stardust`}</small></span><button id="skin-${s.id}" ${!save.owned.includes(s.id) && save.shards < s.price ? 'disabled' : ''}>${save.skin === s.id ? 'Selected' : save.owned.includes(s.id) ? 'Equip' : 'Unlock'}</button></div>`).join('')}<h3>Flight log</h3>${[['First light', save.gates >= 1, 'Reach your first gate'], ['Thread the needle', save.near >= 1, 'Survive a near miss'], ['Wayfarer', save.gates >= 25, 'Reach 25 gates'], ['Zero to infinity', save.victories >= 1, 'Complete a voyage']].map(([name, done, hint]) => `<div class="row ${done ? 'badge' : 'dim'}"><span>${done ? '✓' : '○'} ${name}<small>${hint}</small></span></div>`).join('')}<p>${save.runs} runs · ${save.gates} gates · ${save.near} near misses</p><p>Today’s daily best: ${(save.daily[new Date().toISOString().slice(0, 10)] || 0).toLocaleString()}</p><button class="primary" id="hangarBack">Return to dock</button>`);
+  showPanel(`<span class="eyebrow">YOUR LITTLE CORNER OF SPACE</span><h2>Hangar</h2><p>${save.shards} stardust · Ship styles only. Every ship flies identically.</p>${SKINS.map(s => `<div class="row"><span class="ship-choice">${shipIcon(s)}<span>${s.name}<small>${save.skin === s.id ? 'Equipped' : save.owned.includes(s.id) ? 'Owned' : `${s.price} stardust`}</small></span></span><button id="skin-${s.id}" ${!save.owned.includes(s.id) && save.shards < s.price ? 'disabled' : ''}>${save.skin === s.id ? 'Selected' : save.owned.includes(s.id) ? 'Equip' : 'Unlock'}</button></div>`).join('')}<h3>Flight log</h3>${[['First light', save.gates >= 1, 'Reach your first gate'], ['Thread the needle', save.near >= 1, 'Survive a near miss'], ['Wayfarer', save.gates >= 25, 'Reach 25 gates'], ['Zero to infinity', save.victories >= 1, 'Complete a voyage']].map(([name, done, hint]) => `<div class="row ${done ? 'badge' : 'dim'}"><span>${done ? '✓' : '○'} ${name}<small>${hint}</small></span></div>`).join('')}<p>${save.runs} runs · ${save.gates} gates · ${save.near} near misses</p><p>Today’s daily best: ${(save.daily[new Date().toISOString().slice(0, 10)] || 0).toLocaleString()}</p><button class="primary" id="hangarBack">Return to dock</button>`);
   for (const s of SKINS) $(`skin-${s.id}`).onclick = () => { if (buySkin(save, s.id)) { persist(); hangar(); } }; $('hangarBack').onclick = home;
 }
 function help() {
@@ -131,7 +135,13 @@ function tick(dt) {
       burst(flight.x, flight.y, '#9cf5df', 40); gates++;
       if (mode !== 'endless' && sector >= 12) finish(true, '');
       else { total += flight.score; shards += flight.collected.length; nears += flight.near.length; flight = null; phase = 'transit'; transition = .65; toast('GATE CLEARED'); }
-    } else if (flight.status !== 'flight') { burst(flight.x, flight.y, '#ff947f'); finish(false, flight.status === 'crash' ? 'A beautiful collision.' : 'Lost to the quiet.'); }
+    } else if (flight.status === 'crash') {
+      impactAge = 0; phase = 'impact'; accumulator = 0;
+      burst(flight.x, flight.y, '#ffbd82', 12); toast('BOOP!');
+    } else if (flight.status !== 'flight') { finish(false, 'Lost to the quiet.'); }
+  } else if (phase === 'impact') {
+    impactAge += dt;
+    if (impactAge >= (save.settings.reduced ? .28 : .78)) finish(false, 'A beautiful collision.');
   } else if (phase === 'transit') { transition -= dt; if (transition <= 0) { sector++; newSector(); } }
 }
 function circle(x, y, r, fill, stroke, line = 1) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = line; ctx.stroke(); } }
@@ -142,8 +152,8 @@ const PLANET_PALETTES = {
 };
 function drawPlanet(p, t) {
   const colors = PLANET_PALETTES[p.type] || PLANET_PALETTES.ember;
-  circle(p.x, p.y, p.radius + 23, null, colors[1] + '35');
-  circle(p.x, p.y, p.radius + 44, null, colors[1] + '18');
+  circle(p.x, p.y, p.radius + GRAVITY_REACH * .28, null, colors[1] + '2d');
+  circle(p.x, p.y, p.radius + GRAVITY_REACH * .44, null, colors[1] + '13');
   const g = ctx.createRadialGradient(p.x - p.radius * .45, p.y - p.radius * .45, 1, p.x, p.y, p.radius);
   g.addColorStop(0, colors[0]); g.addColorStop(.58, colors[1]); g.addColorStop(1, colors[2]);
   circle(p.x, p.y, p.radius, g, colors[0] + '88');
@@ -173,17 +183,25 @@ function drawShip(p, velocity, style, t) {
     ctx.fillStyle = '#ffc27d'; ctx.beginPath(); ctx.moveTo(-2.5, 6); ctx.lineTo(0, tail + 3);
     ctx.lineTo(2.5, 6); ctx.closePath(); ctx.fill();
   }
-  const outlines = {
-    scout: [[0, -12], [4, -4], [10, 4], [8, 7], [3, 5], [0, 9], [-3, 5], [-8, 7], [-10, 4], [-4, -4]],
-    arrow: [[0, -14], [4, -5], [7, 9], [0, 5], [-7, 9], [-4, -5]],
-    manta: [[0, -11], [4, -4], [12, -1], [13, 6], [4, 4], [0, 9], [-4, 4], [-13, 6], [-12, -1], [-4, -4]],
-    needle: [[0, -15], [3, -6], [4, 8], [0, 5], [-4, 8], [-3, -6]],
-    starling: [[0, -12], [3, -7], [9, -9], [7, -1], [11, 7], [3, 4], [0, 9], [-3, 4], [-11, 7], [-7, -1], [-9, -9], [-3, -7]]
-  };
-  const vertices = outlines[style.shape] || outlines.scout;
+  const vertices = SHIP_OUTLINES[style.shape] || SHIP_OUTLINES.scout;
   ctx.beginPath(); vertices.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath();
   ctx.fillStyle = style.color; ctx.fill(); ctx.strokeStyle = '#f5fffd'; ctx.lineWidth = 1.1; ctx.stroke();
   circle(0, -2, 2.4, '#102339', '#f5fffd', .6);
+  ctx.restore();
+}
+function drawImpact(p, age) {
+  const progress = Math.min(1, age / .78), spread = 5 + 20 * progress;
+  ctx.save(); ctx.globalAlpha = 1 - progress * .75;
+  circle(p.x, p.y, 4 + 19 * Math.min(1, progress * 3), '#ffe8a8', '#fff5ce', 1.5);
+  // A tiny rounded mushroom cap and stem, rising briefly from the impact.
+  circle(p.x, p.y - 12 - 10 * progress, spread * .7, '#ffd29a');
+  circle(p.x - spread * .6, p.y - 10 - 9 * progress, spread * .48, '#ffad88');
+  circle(p.x + spread * .6, p.y - 10 - 9 * progress, spread * .48, '#ffad88');
+  circle(p.x, p.y - 2 - 5 * progress, 5 + 5 * progress, '#cf7590');
+  for (let i = 0; i < 6; i++) {
+    const a = i * Math.PI / 3 + .2, r = 10 + progress * 25;
+    circle(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r, 1.6 + (1 - progress) * 1.5, '#fff1bc');
+  }
   ctx.restore();
 }
 function render(t, dt) {
@@ -200,16 +218,17 @@ function render(t, dt) {
   const style = SKINS.find(s => s.id === save.skin) || SKINS[0], color = style.color;
   if (!save.settings.reduced && trail.length > 1) { for (let i = 1; i < trail.length; i++) { ctx.globalAlpha = i / trail.length * .6; ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(trail[i - 1].x, trail[i - 1].y); ctx.lineTo(trail[i].x, trail[i].y); ctx.stroke(); } ctx.globalAlpha = 1; }
   if (preview && phase === 'aim') { preview.points.forEach((p, i) => { ctx.globalAlpha = 1 - i / preview.points.length * .75; circle(p.x, p.y, 1.6, '#d7fff5'); }); ctx.globalAlpha = 1; }
-  if (phase === 'aim' || phase === 'home' || flight) {
+  if (phase === 'aim' || phase === 'home' || (flight && phase !== 'impact')) {
     const p = flight || START;
     drawShip(p, flight || vector, style, t);
     if (phase === 'aim') { circle(p.x, p.y, 25, null, color + '55'); if (vector) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - vector.vx / 3.2, p.y - vector.vy / 3.2); ctx.strokeStyle = color + '77'; ctx.setLineDash([3, 5]); ctx.stroke(); ctx.setLineDash([]); } }
   }
+  if (phase === 'impact' && flight) drawImpact(flight, impactAge);
   for (const p of particles) { if (!['pause', 'settings'].includes(phase)) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; } ctx.globalAlpha = Math.max(0, p.life); circle(p.x, p.y, 2, p.color); } ctx.globalAlpha = 1; particles = particles.filter(p => p.life > 0); ctx.restore();
 }
 function frame(t) {
   const dt = Math.min((t - clock) / 1000 || 0, .1); clock = t;
-  if (['flight', 'transit'].includes(phase)) { accumulator += dt; while (accumulator >= DT) { accumulator -= DT; tick(DT); if (!['flight', 'transit'].includes(phase)) { accumulator = 0; break; } } }
+  if (['flight', 'transit', 'impact'].includes(phase)) { accumulator += dt; while (accumulator >= DT) { accumulator -= DT; tick(DT); if (!['flight', 'transit', 'impact'].includes(phase)) { accumulator = 0; break; } } }
   if (t > toastUntil) $('toast').textContent = ''; render(t, dt); requestAnimationFrame(frame);
 }
 home(); requestAnimationFrame(frame);

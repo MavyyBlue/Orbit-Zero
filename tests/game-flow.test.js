@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { encounter, createFlight, advance } from '../web/simulation.js';
+import { encounter, createFlight, advance, dailySeed } from '../web/simulation.js';
 
 test('complete UI voyage, pause, retry, save restoration data and cosmetic/settings menus', async () => {
   const elements = new Map(), listeners = {}, storage = new Map(); let frame;
@@ -48,10 +48,29 @@ test('complete UI voyage, pause, retry, save restoration data and cosmetic/setti
   const saved = JSON.parse(storage.get('orbit-zero.save.v1'));
   assert.equal(saved.victories, 1); assert.equal(saved.gates, 12); assert.equal(saved.runs, 1); assert.ok(saved.best >= 6000);
   click('retry'); assert.equal(el('panel').hidden, true); click('pause'); click('quit'); click('resultHome');
-  click('hangar'); assert.match(el('panelBody').innerHTML, /Zero to infinity/); click('hangarBack');
+  click('hangar'); assert.match(el('panelBody').innerHTML, /Zero to infinity/);
+  assert.equal((el('panelBody').innerHTML.match(/class="ship-icon"/g) || []).length, 5);
+  click('hangarBack');
   click('daily'); assert.match(el('sectorLabel').textContent, /DAILY/);
   // Pointer cancellation must not launch.
   const c = el('space'); c.onpointerdown({ clientX: 200, clientY: 574, pointerId: 1 }); c.onpointermove({ clientX: 200, clientY: 670, pointerId: 1 }); c.onpointercancel(); c.onpointerup({ pointerId: 1 });
   assert.equal(el('aimControls').hidden, false);
+  // Find a real collision in the current Daily field, then verify the impact beat.
+  const w = encounter(dailySeed(), 1, 'daily'); let crash;
+  for (let power = 40; power <= 100 && !crash; power += 10) for (let angle = -60; angle <= 60 && !crash; angle += 5) {
+    const a = angle * Math.PI / 180, s = createFlight({ vx: Math.sin(a) * power / 100 * 368, vy: -Math.cos(a) * power / 100 * 368 });
+    for (let i = 0; i < 1681 && s.status === 'flight'; i++) advance(s, w);
+    if (s.status === 'crash') crash = { angle, power, age: s.age };
+  }
+  assert.ok(crash, 'a collision control exists');
+  el('angle').value = crash.angle; el('power').value = crash.power; el('angle').oninput(); click('launchButton');
+  frames(Math.ceil(crash.age * 60) + 2);
+  assert.equal(el('panel').hidden, true, 'collision effect plays before result');
+  click('pause'); frames(100);
+  assert.match(el('panelBody').innerHTML, /Orbit on hold/, 'paused impact does not finish unseen');
+  click('resume');
+  frames(60);
+  assert.match(el('panelBody').innerHTML, /A beautiful collision/);
+  click('retry');
   document.hidden = true; listeners.visibilitychange(); assert.match(el('panelBody').innerHTML, /Orbit on hold/);
 });
