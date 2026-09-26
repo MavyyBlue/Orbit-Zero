@@ -202,6 +202,8 @@ jobs:
               raise RuntimeError('Local preview server did not start')
           PYTHON
           node scripts/browser-smoke.mjs
+      - name: Set up Android SDK command-line tools
+        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3
       - name: Build and lint Android debug APK
         run: |
           sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
