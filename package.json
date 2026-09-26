@@ -1,0 +1,6 @@
+{
+  "name": "orbit-zero", "version": "0.1.0", "private": true, "type": "module",
+  "description": "Offline single-player gravity flight game",
+  "scripts": { "test": "node --test tests/*.test.js", "check": "node scripts/check.mjs", "validate": "npm run check && npm test", "serve": "python3 -m http.server 8080 --directory web" },
+  "engines": { "node": ">=22" }
+}

@@ -1,0 +1,9 @@
+.gradle/
+**/build/
+local.properties
+node_modules/
+.DS_Store
+*.log
+__pycache__/
+*.pyc
+!dev-signing/orbit-zero-debug.keystore
