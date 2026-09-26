@@ -25,7 +25,7 @@ function toast(text) { $('toast').textContent = text; toastUntil = performance.n
 function updateHud() { $('sectorLabel').textContent = `${mode === 'daily' ? 'DAILY' : 'SECTOR'} ${String(sector).padStart(2, '0')} / ${mode === 'endless' ? '∞' : '12'}`; $('score').textContent = (total + (flight?.score || 0)).toLocaleString(); $('combo').textContent = `×${flight?.combo || 1}`; }
 function home() {
   phase = 'home'; flight = null; drag = null; preview = null; vector = null; particles = []; trail = [];
-  world = encounter(319, 2); $('notice').textContent = ''; $('toast').textContent = '';
+  world = encounter(319, 2, 'voyage'); $('notice').textContent = ''; $('toast').textContent = '';
   $('homeBest').textContent = save.best.toLocaleString(); screens(true);
 }
 function start(which) {
@@ -34,7 +34,7 @@ function start(which) {
   sector = 1; total = 0; shards = 0; nears = 0; gates = 0; finished = false; bestBefore = save.best; newSector();
 }
 function newSector() {
-  world = encounter(seed, sector); flight = null; vector = null; preview = null; drag = null; trail = []; particles = []; accumulator = 0;
+  world = encounter(seed, sector, mode); flight = null; vector = null; preview = null; drag = null; trail = []; particles = []; accumulator = 0;
   phase = 'aim'; $('notice').textContent = world.label; $('toast').textContent = ''; screens();
   $('assist').hidden = !assist; if (assist) aimFromControls(); updateHud();
 }
@@ -50,7 +50,7 @@ function aimFromControls() {
 function pause() {
   if (!['aim', 'flight', 'transit'].includes(phase)) return;
   previous = phase; phase = 'pause'; drag = null; accumulator = 0;
-  showPanel(`<span class="eyebrow">TAKE A BREATH</span><h2>Orbit on hold.</h2><p>Your probe will wait.</p><button class="primary" id="resume">Resume flight ↗</button><button class="back" id="pauseSettings">Settings</button><button class="back" id="quit">End run</button>`);
+  showPanel(`<span class="eyebrow">TAKE A BREATH</span><h2>Orbit on hold.</h2><p>Your ship will wait.</p><button class="primary" id="resume">Resume flight ↗</button><button class="back" id="pauseSettings">Settings</button><button class="back" id="quit">End run</button>`);
   $('resume').onclick = resume; $('pauseSettings').onclick = () => settings('pause'); $('quit').onclick = () => finish(false, 'Run ended');
 }
 function resume() { sound.unlock(); phase = previous; accumulator = 0; if (phase === 'aim' && assist) aimFromControls(); screens(); }
@@ -74,17 +74,17 @@ function settings(from = 'home') {
   settingsOrigin = from;
   phase = 'settings'; $('notice').textContent = ''; $('toast').textContent = '';
   const labels = { sound: 'Sound effects', music: 'Ambient music', haptics: 'Haptic feedback', reduced: 'Reduce motion', contrast: 'High contrast text' };
-  showPanel(`<span class="eyebrow">MAKE SPACE YOURS</span><h2>Settings</h2>${Object.entries(labels).map(([k, label]) => `<div class="row"><span>${label}</span><button id="set-${k}" aria-pressed="${save.settings[k]}">${save.settings[k] ? 'On' : 'Off'}</button></div>`).join('')}<p>Drag anywhere near the probe to aim. Button aiming offers sliders and a launch button. No purchases, accounts, or network connection.</p><button class="primary" id="settingsBack">Done</button>`);
+  showPanel(`<span class="eyebrow">MAKE SPACE YOURS</span><h2>Settings</h2>${Object.entries(labels).map(([k, label]) => `<div class="row"><span>${label}</span><button id="set-${k}" aria-pressed="${save.settings[k]}">${save.settings[k] ? 'On' : 'Off'}</button></div>`).join('')}<p>Drag anywhere near the ship to aim. Button aiming offers sliders and a launch button. No purchases, accounts, or network connection.</p><button class="primary" id="settingsBack">Done</button>`);
   for (const k of Object.keys(labels)) $(`set-${k}`).onclick = () => { save.settings[k] = !save.settings[k]; persist(); applySettings(); sound.unlock(); settings(from); };
   $('settingsBack').onclick = () => { if (from === 'pause') { phase = previous; pause(); } else home(); };
 }
 function hangar() {
   phase = 'hangar';
-  showPanel(`<span class="eyebrow">YOUR LITTLE CORNER OF SPACE</span><h2>Hangar</h2><p>${save.shards} stardust · Cosmetic colors only. Every probe flies identically.</p>${SKINS.map(s => `<div class="row"><span>${s.name}<small>${save.skin === s.id ? 'Equipped' : save.owned.includes(s.id) ? 'Owned' : `${s.price} stardust`}</small></span><button id="skin-${s.id}" ${!save.owned.includes(s.id) && save.shards < s.price ? 'disabled' : ''}>${save.skin === s.id ? 'Selected' : save.owned.includes(s.id) ? 'Equip' : 'Unlock'}</button></div>`).join('')}<h3>Flight log</h3>${[['First light', save.gates >= 1, 'Reach your first gate'], ['Thread the needle', save.near >= 1, 'Survive a near miss'], ['Wayfarer', save.gates >= 25, 'Reach 25 gates'], ['Zero to infinity', save.victories >= 1, 'Complete a voyage']].map(([name, done, hint]) => `<div class="row ${done ? 'badge' : 'dim'}"><span>${done ? '✓' : '○'} ${name}<small>${hint}</small></span></div>`).join('')}<p>${save.runs} runs · ${save.gates} gates · ${save.near} near misses</p><p>Today’s daily best: ${(save.daily[new Date().toISOString().slice(0, 10)] || 0).toLocaleString()}</p><button class="primary" id="hangarBack">Return to dock</button>`);
+  showPanel(`<span class="eyebrow">YOUR LITTLE CORNER OF SPACE</span><h2>Hangar</h2><p>${save.shards} stardust · Ship styles only. Every ship flies identically.</p>${SKINS.map(s => `<div class="row"><span>${s.name}<small>${save.skin === s.id ? 'Equipped' : save.owned.includes(s.id) ? 'Owned' : `${s.price} stardust`}</small></span><button id="skin-${s.id}" ${!save.owned.includes(s.id) && save.shards < s.price ? 'disabled' : ''}>${save.skin === s.id ? 'Selected' : save.owned.includes(s.id) ? 'Equip' : 'Unlock'}</button></div>`).join('')}<h3>Flight log</h3>${[['First light', save.gates >= 1, 'Reach your first gate'], ['Thread the needle', save.near >= 1, 'Survive a near miss'], ['Wayfarer', save.gates >= 25, 'Reach 25 gates'], ['Zero to infinity', save.victories >= 1, 'Complete a voyage']].map(([name, done, hint]) => `<div class="row ${done ? 'badge' : 'dim'}"><span>${done ? '✓' : '○'} ${name}<small>${hint}</small></span></div>`).join('')}<p>${save.runs} runs · ${save.gates} gates · ${save.near} near misses</p><p>Today’s daily best: ${(save.daily[new Date().toISOString().slice(0, 10)] || 0).toLocaleString()}</p><button class="primary" id="hangarBack">Return to dock</button>`);
   for (const s of SKINS) $(`skin-${s.id}`).onclick = () => { if (buySkin(save, s.id)) { persist(); hangar(); } }; $('hangarBack').onclick = home;
 }
 function help() {
-  phase = 'help'; showPanel('<span class="eyebrow">FLIGHT SCHOOL · 30 SECONDS</span><h2>Let gravity help.</h2><p><b>1. Pull back.</b> Touch near the glowing probe and drag opposite your intended direction. More pull means more speed.</p><p><b>2. Read the line.</b> The dotted arc shows only the first 2.1 seconds. It uses the exact same physics as your flight. Beyond the dots, you’re on your own.</p><p><b>3. Release.</b> Collect diamond stardust. Skim a planet and survive to earn a near-miss multiplier. Enter the bright ring to reach the next sector.</p><p>Hit a planet, leave the field, or drift for 14 seconds and the run ends. Voyage and Daily have 12 sectors; Endless keeps going. Daily uses one shared offline UTC-date seed, with no leaderboard.</p><p>Keyboard: arrows adjust angle and power, Space launches, Escape pauses. Button aiming is available below the probe.</p><button class="primary" id="helpBack">Got it ↗</button>'); $('helpBack').onclick = home;
+  phase = 'help'; showPanel('<span class="eyebrow">FLIGHT SCHOOL · 30 SECONDS</span><h2>Let gravity help.</h2><p><b>1. Pull back.</b> Touch near the little ship and drag opposite your intended direction. More pull means more speed.</p><p><b>2. Read the line.</b> The dotted arc shows only the first 2.1 seconds. It uses the exact same physics as your flight. Beyond the dots, you’re on your own.</p><p><b>3. Release.</b> Collect stars hidden beyond the planets’ direct sightlines by curving around their gravity. Skim a planet and survive to earn a near-miss multiplier. Enter the bright ring to reach the next sector.</p><p>Hit a planet, leave the field, or drift for 14 seconds and the run ends. Voyage and Daily have 12 sectors; Endless keeps going. Daily uses one shared offline UTC-date seed, with no leaderboard.</p><p>Keyboard: arrows adjust angle and power, Space launches, Escape pauses. Button aiming is available below the ship.</p><button class="primary" id="helpBack">Got it ↗</button>'); $('helpBack').onclick = home;
 }
 $('play').onclick = () => start('voyage'); $('endless').onclick = () => start('endless'); $('daily').onclick = () => start('daily');
 $('pause').onclick = pause; $('settings').onclick = () => settings(); $('hangar').onclick = hangar; $('help').onclick = help;
@@ -123,7 +123,7 @@ function tick(dt) {
     advance(flight, world); trail.push({ x: flight.x, y: flight.y }); if (trail.length > 110) trail.shift();
     for (const event of flight.events) {
       sound.cue(event);
-      if (event === 'pickup') { burst(flight.x, flight.y, '#ffdda5', 10); toast(`STARDUST +${100 * flight.combo}`); }
+      if (event === 'pickup') { burst(flight.x, flight.y, '#ffdda5', 10); toast(`STAR +${100 * flight.combo}`); }
       if (event === 'near') { burst(flight.x, flight.y, '#9cf5df', 28); toast(`CLOSE CALL ×${flight.combo}`); }
     }
     updateHud();
@@ -135,26 +135,74 @@ function tick(dt) {
   } else if (phase === 'transit') { transition -= dt; if (transition <= 0) { sector++; newSector(); } }
 }
 function circle(x, y, r, fill, stroke, line = 1) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = line; ctx.stroke(); } }
+const PLANET_PALETTES = {
+  ember: ['#ffc390', '#a45053', '#382340'], ice: ['#f1ffff', '#89c9df', '#335d82'],
+  jade: ['#d9f4ae', '#70b69a', '#345f62'], violet: ['#ebd9ff', '#a38acc', '#4c416d'],
+  sand: ['#ffe1a3', '#c49461', '#665044']
+};
+function drawPlanet(p, t) {
+  const colors = PLANET_PALETTES[p.type] || PLANET_PALETTES.ember;
+  circle(p.x, p.y, p.radius + 23, null, colors[1] + '35');
+  circle(p.x, p.y, p.radius + 44, null, colors[1] + '18');
+  const g = ctx.createRadialGradient(p.x - p.radius * .45, p.y - p.radius * .45, 1, p.x, p.y, p.radius);
+  g.addColorStop(0, colors[0]); g.addColorStop(.58, colors[1]); g.addColorStop(1, colors[2]);
+  circle(p.x, p.y, p.radius, g, colors[0] + '88');
+  ctx.save(); ctx.translate(p.x, p.y);
+  if (p.type === 'sand' || p.type === 'jade') {
+    ctx.rotate(-.42); ctx.beginPath(); ctx.ellipse(0, 0, p.radius * 1.6, p.radius * .31, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = colors[0] + '88'; ctx.lineWidth = p.type === 'sand' ? 3 : 2; ctx.stroke();
+  } else if (p.type === 'ice') {
+    circle(-p.radius * .13, -p.radius * .18, p.radius * .28, null, '#f4ffff88');
+    circle(p.radius * .38, p.radius * .28, p.radius * .14, null, '#f4ffff66');
+  } else if (p.type === 'violet') {
+    ctx.strokeStyle = '#f0e1ff99'; ctx.lineWidth = 1.5; ctx.beginPath();
+    ctx.moveTo(-p.radius * .42, p.radius * .12); ctx.lineTo(0, -p.radius * .6);
+    ctx.lineTo(p.radius * .32, p.radius * .3); ctx.stroke();
+  } else {
+    circle(p.radius * .2, -p.radius * .15, p.radius * .28, '#ffd2a054');
+    circle(-p.radius * .32, p.radius * .26, p.radius * .12, '#ffe0b044');
+  }
+  ctx.restore();
+}
+function drawShip(p, velocity, style, t) {
+  const angle = velocity ? Math.atan2(velocity.vy, velocity.vx) + Math.PI / 2 : 0;
+  ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(angle);
+  circle(0, 0, 15, style.color + '17');
+  if (velocity && !save.settings.reduced) {
+    const tail = 8 + Math.sin(t * .025) * 2;
+    ctx.fillStyle = '#ffc27d'; ctx.beginPath(); ctx.moveTo(-2.5, 6); ctx.lineTo(0, tail + 3);
+    ctx.lineTo(2.5, 6); ctx.closePath(); ctx.fill();
+  }
+  const outlines = {
+    scout: [[0, -12], [4, -4], [10, 4], [8, 7], [3, 5], [0, 9], [-3, 5], [-8, 7], [-10, 4], [-4, -4]],
+    arrow: [[0, -14], [4, -5], [7, 9], [0, 5], [-7, 9], [-4, -5]],
+    manta: [[0, -11], [4, -4], [12, -1], [13, 6], [4, 4], [0, 9], [-4, 4], [-13, 6], [-12, -1], [-4, -4]],
+    needle: [[0, -15], [3, -6], [4, 8], [0, 5], [-4, 8], [-3, -6]],
+    starling: [[0, -12], [3, -7], [9, -9], [7, -1], [11, 7], [3, 4], [0, 9], [-3, 4], [-11, 7], [-7, -1], [-9, -9], [-3, -7]]
+  };
+  const vertices = outlines[style.shape] || outlines.scout;
+  ctx.beginPath(); vertices.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath();
+  ctx.fillStyle = style.color; ctx.fill(); ctx.strokeStyle = '#f5fffd'; ctx.lineWidth = 1.1; ctx.stroke();
+  circle(0, -2, 2.4, '#102339', '#f5fffd', .6);
+  ctx.restore();
+}
 function render(t, dt) {
   ctx.clearRect(0, 0, width, height); ctx.fillStyle = '#080e1c'; ctx.fillRect(0, 0, width, height); ctx.save(); ctx.translate(offsetX, offsetY); ctx.scale(scale, scale);
   const backdrop = ctx.createRadialGradient(295, 310, 0, 230, 350, 370); backdrop.addColorStop(0, '#15243b'); backdrop.addColorStop(1, '#080e1c'); ctx.fillStyle = backdrop; ctx.fillRect(0, 0, W, H);
   for (const s of stars) { ctx.globalAlpha = s.a; circle(s.x, s.y, s.r, '#adc0e5'); } ctx.globalAlpha = 1;
   const displayWorld = world;
-  for (const p of displayWorld.planets) {
-    circle(p.x, p.y, p.radius + 23, null, '#34415455'); circle(p.x, p.y, p.radius + 45, null, '#30405a33');
-    const g = ctx.createRadialGradient(p.x - p.radius * .45, p.y - p.radius * .45, 2, p.x, p.y, p.radius); g.addColorStop(0, '#cf937e'); g.addColorStop(.55, '#805f61'); g.addColorStop(1, '#302c40');
-    circle(p.x, p.y, p.radius, g, '#dda59477'); ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(-.42); ctx.beginPath(); ctx.ellipse(0, 0, p.radius * 1.7, p.radius * .3, 0, 0, Math.PI * 2); ctx.strokeStyle = '#c6988b66'; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
-  }
+  for (const p of displayWorld.planets) drawPlanet(p, t);
   for (const p of displayWorld.hazards) { circle(p.x, p.y, p.radius, '#444157', '#b5a4a4'); ctx.beginPath(); ctx.moveTo(p.x - 4, p.y - 6); ctx.lineTo(p.x + 5, p.y + 5); ctx.strokeStyle = '#80758b'; ctx.stroke(); }
-  displayWorld.pickups.forEach((p, i) => { if (flight?.collected.includes(i)) return; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Math.PI / 4); ctx.fillStyle = '#f8d6a0'; ctx.fillRect(-4, -4, 8, 8); ctx.strokeStyle = '#f8d6a044'; ctx.strokeRect(-8, -8, 16, 16); ctx.restore(); });
+  displayWorld.pickups.forEach((p, i) => { if (flight?.collected.includes(i)) return; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(-Math.PI / 2); ctx.beginPath(); for (let k = 0; k < 10; k++) { const a = k * Math.PI / 5, r = k % 2 ? 3.5 : 8; const x = Math.cos(a) * r, y = Math.sin(a) * r; k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.closePath(); ctx.fillStyle = '#ffe2a4'; ctx.fill(); ctx.strokeStyle = '#fff6de'; ctx.lineWidth = 1; ctx.stroke(); ctx.restore(); });
   const gate = displayWorld.gate; circle(gate.x, gate.y, gate.radius, '#9cf5df08', '#9cf5df', 2); circle(gate.x, gate.y, gate.radius + 6, null, '#9cf5df22');
   ctx.save(); ctx.translate(gate.x, gate.y); ctx.rotate(save.settings.reduced ? 0 : t * .0004); ctx.strokeStyle = '#eefcf6'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, gate.radius, 0, .45); ctx.arc(0, 0, gate.radius, Math.PI, Math.PI + .45); ctx.stroke(); ctx.restore();
   if (phase !== 'home') { ctx.fillStyle = '#9cf5df'; ctx.font = '8px system-ui'; ctx.textAlign = 'center'; ctx.fillText('EXIT', gate.x, gate.y + 3); }
-  const color = SKINS.find(s => s.id === save.skin).color;
+  const style = SKINS.find(s => s.id === save.skin) || SKINS[0], color = style.color;
   if (!save.settings.reduced && trail.length > 1) { for (let i = 1; i < trail.length; i++) { ctx.globalAlpha = i / trail.length * .6; ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(trail[i - 1].x, trail[i - 1].y); ctx.lineTo(trail[i].x, trail[i].y); ctx.stroke(); } ctx.globalAlpha = 1; }
   if (preview && phase === 'aim') { preview.points.forEach((p, i) => { ctx.globalAlpha = 1 - i / preview.points.length * .75; circle(p.x, p.y, 1.6, '#d7fff5'); }); ctx.globalAlpha = 1; }
   if (phase === 'aim' || phase === 'home' || flight) {
-    const p = flight || START; circle(p.x, p.y, 17, color + '12'); circle(p.x, p.y, 9, color + '25'); circle(p.x, p.y, 4, '#f5fffd', color);
+    const p = flight || START;
+    drawShip(p, flight || vector, style, t);
     if (phase === 'aim') { circle(p.x, p.y, 25, null, color + '55'); if (vector) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - vector.vx / 3.2, p.y - vector.vy / 3.2); ctx.strokeStyle = color + '77'; ctx.setLineDash([3, 5]); ctx.stroke(); ctx.setLineDash([]); } }
   }
   for (const p of particles) { if (!['pause', 'settings'].includes(phase)) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; } ctx.globalAlpha = Math.max(0, p.life); circle(p.x, p.y, 2, p.color); } ctx.globalAlpha = 1; particles = particles.filter(p => p.life > 0); ctx.restore();

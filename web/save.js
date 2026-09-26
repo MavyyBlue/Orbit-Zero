@@ -7,7 +7,7 @@ export function parseSave(raw) {
     const v = JSON.parse(raw);
     if (!v || v.version !== 1) return s;
     for (const k of ['best', 'runs', 'gates', 'near', 'shards', 'victories']) s[k] = bounded(v[k]);
-    s.owned = ['ion', ...['ember', 'violet'].filter(k => v.owned?.includes(k))];
+    s.owned = ['ion', ...SKINS.map(ship => ship.id).filter(k => k !== 'ion' && Array.isArray(v.owned) && v.owned.includes(k))];
     if (s.owned.includes(v.skin)) s.skin = v.skin;
     for (const k of Object.keys(s.settings)) if (typeof v.settings?.[k] === 'boolean') s.settings[k] = v.settings[k];
     if (v.daily && typeof v.daily === 'object') for (const [k, val] of Object.entries(v.daily).slice(-32)) if (/^\d{4}-\d{2}-\d{2}$/.test(k)) s.daily[k] = bounded(val);
@@ -16,7 +16,14 @@ export function parseSave(raw) {
 }
 export function loadSave(storage) { try { return { save: parseSave(storage.getItem(SAVE_KEY)), available: true }; } catch { return { save: freshSave(), available: false }; } }
 export function writeSave(storage, save) { try { storage.setItem(SAVE_KEY, JSON.stringify(save)); return true; } catch { return false; } }
-export const SKINS = [{ id: 'ion', name: 'Ion', color: '#8ff4e0', price: 0 }, { id: 'ember', name: 'Ember', color: '#ff987d', price: 35 }, { id: 'violet', name: 'Violet', color: '#c5a6ff', price: 70 }];
+// Existing IDs and prices stay stable so previous unlocks and saves survive.
+export const SKINS = [
+  { id: 'ion', name: 'Scout', color: '#8ff4e0', shape: 'scout', price: 0 },
+  { id: 'ember', name: 'Arrow', color: '#ff987d', shape: 'arrow', price: 35 },
+  { id: 'violet', name: 'Manta', color: '#c5a6ff', shape: 'manta', price: 70 },
+  { id: 'flare', name: 'Needle', color: '#ffe0a0', shape: 'needle', price: 120 },
+  { id: 'orbit', name: 'Starling', color: '#93bbff', shape: 'starling', price: 180 }
+];
 export function buySkin(save, id) {
   const skin = SKINS.find(s => s.id === id);
   if (!skin) return false;

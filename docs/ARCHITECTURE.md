@@ -9,7 +9,7 @@ architecture/game-direction authority. Yuki may revise it after reviewing eviden
 | Boundary | Current authority |
 | --- | --- |
 | Physics, collision, prediction | `web/simulation.js`; pure fixed-step `advance` at 120 Hz |
-| Encounters | Seeded `encounter` in the simulation module; four template families |
+| Encounters | Seeded `encounter` in the simulation module; three to five varied gravity sources, a route search placing obscured stars and gate |
 | Run transitions, scoring aggregation, input | `web/game.js`; aim/flight/transit/pause/result states |
 | Rendering | Canvas draw functions in `game.js`; never advance physics |
 | Menus/accessibility controls | Semantic HTML controls and `style.css` |
@@ -17,6 +17,12 @@ architecture/game-direction authority. Yuki may revise it after reviewing eviden
 | Audio | `web/audio.js`; original Web Audio notes/cues, no media downloads |
 | Android | Java Activity, local HTTPS asset origin, bounded haptic bridge |
 | Import/build | Owner-created bootstrap workflow; ZIP cannot modify workflows |
+
+Encounter generation searches sampled launch controls using the authoritative
+`advance` function, then checks that all three stars and the gate are reached in
+order. It chooses pickup and exit positions behind a planet from the launch
+point. This guarantees a known gravity route for generated sectors, not unique
+solutions or ideal difficulty; balancing remains subject to phone play.
 
 Prediction clones initial flight state and calls the exact same `advance` function
 and time step as live flight. No separately approximated ballistic curve. Preview

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DT, START, encounter, createFlight, advance, predict, launchVector, dailySeed } from '../web/simulation.js';
+import { DT, START, encounter, planetCount, createFlight, advance, predict, launchVector, dailySeed } from '../web/simulation.js';
 const empty = () => ({ planets: [], hazards: [], pickups: [], gate: { x: 200, y: 97, radius: 31 } });
 test('preview equals authoritative live flight for every displayed sample', () => {
   for (let seed = 1; seed <= 12; seed++) for (let sector = 1; sector <= 12; sector++) {
@@ -42,14 +42,41 @@ test('daily seed uses UTC day', () => {
   assert.equal(dailySeed(new Date('2026-09-26T00:00:00Z')), dailySeed(new Date('2026-09-26T23:59:59Z')));
   assert.notEqual(dailySeed(new Date('2026-09-26T00:00:00Z')), dailySeed(new Date('2026-09-27T00:00:00Z')));
 });
-test('sampled generated sectors each have a reachable gate using legal controls', () => {
-  for (const seed of [1, 57, 90210, dailySeed(new Date('2026-09-26'))]) for (let sector = 1; sector <= 12; sector++) {
-    const w = encounter(seed, sector); let solved = false;
-    for (let angle = -40; angle <= 40 && !solved; angle += 2) for (const speed of [220, 280, 340, 368]) {
-      const a = angle * Math.PI / 180, s = createFlight({ vx: Math.sin(a) * speed, vy: -Math.cos(a) * speed });
-      for (let i = 0; i < 1681 && s.status === 'flight'; i++) advance(s, w);
-      if (s.status === 'gate') { solved = true; break; }
-    }
-    assert.ok(solved, `Unsolved seed ${seed} sector ${sector}`);
+function blockedFromLaunch(target, planets, radius) {
+  const dx = target.x - START.x, dy = target.y - START.y, d2 = dx * dx + dy * dy;
+  return planets.some(p => {
+    const t = ((p.x - START.x) * dx + (p.y - START.y) * dy) / d2;
+    return t > .08 && t < .95 && Math.hypot(START.x + dx * t - p.x, START.y + dy * t - p.y) + (radius + 4) * t + 3 < p.radius + 4;
+  });
+}
+test('gravity routes place every star and exit beyond direct sight, and can collect all', () => {
+  const seeds = [1, 57, 90210, dailySeed(new Date('2026-09-26'))];
+  for (const seed of seeds) for (let sector = 1; sector <= 12; sector++) {
+    const w = encounter(seed, sector);
+    assert.equal(w.planets.length, 3 + Math.floor((sector - 1) / 4));
+    assert.equal(w.pickups.length, 3);
+    assert.ok(w.planets.every(p => p.mass > 0 && p.type));
+    for (const p of [...w.pickups, w.gate]) assert.ok(blockedFromLaunch(p, w.planets, p.radius), `Direct line exposed: ${seed}/${sector}`);
+    const { angle, power } = w.reference, a = angle * Math.PI / 180;
+    const v = { vx: Math.sin(a) * power / 100 * 368, vy: -Math.cos(a) * power / 100 * 368 };
+    const s = createFlight(v);
+    for (let i = 0; i < 1681 && s.status === 'flight'; i++) advance(s, w);
+    assert.equal(s.status, 'gate', `Unsolved seed ${seed} sector ${sector}`);
+    assert.equal(s.collected.length, 3, `Unreachable stars ${seed}/${sector}`);
+    const noGravity = { ...w, planets: w.planets.map(p => ({ ...p, mass: 0 })) }, straight = createFlight(v);
+    for (let i = 0; i < 1681 && straight.status === 'flight'; i++) advance(straight, noGravity);
+    assert.notEqual(straight.status, 'gate', `Gravity did not matter ${seed}/${sector}`);
   }
+});
+test('endless independently chooses three through five planets, with reachable gravity routes', () => {
+  const seen = new Set();
+  for (let sector = 1; sector <= 30; sector++) {
+    const w = encounter(57, sector, 'endless'), count = planetCount(57, sector, 'endless');
+    assert.equal(w.planets.length, count); seen.add(count);
+    const { angle, power } = w.reference, a = angle * Math.PI / 180;
+    const s = createFlight({ vx: Math.sin(a) * power / 100 * 368, vy: -Math.cos(a) * power / 100 * 368 });
+    for (let i = 0; i < 1681 && s.status === 'flight'; i++) advance(s, w);
+    assert.equal(s.status, 'gate'); assert.equal(s.collected.length, 3);
+  }
+  assert.deepEqual([...seen].sort(), [3, 4, 5]);
 });

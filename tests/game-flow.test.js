@@ -34,16 +34,14 @@ test('complete UI voyage, pause, retry, save restoration data and cosmetic/setti
   let time = 0;
   function frames(n) { for (let i = 0; i < n; i++) frame(time += 1000 / 60); }
   for (let sector = 1; sector <= 12; sector++) {
-    const w = encounter(57, sector); let answer;
-    for (let a = -40; a <= 40 && !answer; a += 2) for (const power of [60, 75, 90, 100]) {
-      const rad = a * Math.PI / 180, s = createFlight({ vx: Math.sin(rad) * power / 100 * 368, vy: -Math.cos(rad) * power / 100 * 368 });
-      for (let i = 0; i < 1681 && s.status === 'flight'; i++) advance(s, w);
-      if (s.status === 'gate') { answer = { a, power, time: s.age }; break; }
-    }
-    assert.ok(answer, `sector ${sector} solvable`);
-    el('angle').value = answer.a; el('power').value = answer.power; el('angle').oninput(); click('launchButton');
+    const w = encounter(57, sector), { angle, power } = w.reference, rad = angle * Math.PI / 180;
+    const solution = createFlight({ vx: Math.sin(rad) * power / 100 * 368, vy: -Math.cos(rad) * power / 100 * 368 });
+    for (let i = 0; i < 1681 && solution.status === 'flight'; i++) advance(solution, w);
+    assert.equal(solution.status, 'gate', `sector ${sector} solvable`);
+    assert.equal(solution.collected.length, 3, `sector ${sector} stars reachable`);
+    el('angle').value = angle; el('power').value = power; el('angle').oninput(); click('launchButton');
     if (sector === 1) { frames(3); click('pause'); const score = el('score').textContent; frames(300); assert.equal(el('score').textContent, score); click('resume'); }
-    frames(Math.ceil((answer.time + 1) * 60));
+    frames(Math.ceil((solution.age + 1) * 60));
     if (sector < 12) { assert.equal(el('panel').hidden, true); assert.match(el('sectorLabel').textContent, new RegExp(String(sector + 1).padStart(2, '0'))); }
   }
   assert.match(el('panelBody').innerHTML, /VOYAGE COMPLETE/);

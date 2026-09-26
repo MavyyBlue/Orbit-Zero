@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { freshSave, parseSave, loadSave, writeSave, buySkin } from '../web/save.js';
+import { freshSave, parseSave, loadSave, writeSave, buySkin, SKINS } from '../web/save.js';
 test('missing, corrupt and future saves fall back without throwing', () => {
   for (const raw of [null, '', '{broken', '{}', '{"version":99}', 'null']) assert.deepEqual(parseSave(raw), freshSave());
 });
@@ -19,4 +19,13 @@ test('storage errors are explicit; saves persist through reload', () => {
   assert.equal(loadSave(blocked).available, false); assert.equal(writeSave(blocked, freshSave()), false);
   const map = new Map(), storage = { getItem: k => map.get(k), setItem: (k, v) => map.set(k, v) };
   const s = freshSave(); s.gates = 9; assert.ok(writeSave(storage, s)); assert.equal(loadSave(storage).save.gates, 9);
+});
+
+test('old unlocks survive and new silhouettes have distinct styles', () => {
+  const old = freshSave(); old.skin = 'violet'; old.owned = ['ion', 'ember', 'violet'];
+  const migrated = parseSave(JSON.stringify(old));
+  assert.equal(migrated.skin, 'violet'); assert.deepEqual(migrated.owned, old.owned);
+  assert.equal(new Set(SKINS.map(s => s.shape)).size, SKINS.length);
+  migrated.shards = 180; assert.equal(buySkin(migrated, 'orbit'), true);
+  assert.equal(parseSave(JSON.stringify(migrated)).skin, 'orbit');
 });

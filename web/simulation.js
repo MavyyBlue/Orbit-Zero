@@ -10,16 +10,92 @@ export function dailySeed(date = new Date()) {
   const key = date.toISOString().slice(0, 10);
   return [...key].reduce((a, c) => Math.imul(a ^ c.charCodeAt(0), 16777619) >>> 0, 2166136261);
 }
-export function encounter(seed, sector = 1) {
-  const r = rng((seed ^ Math.imul(sector, 2654435761)) >>> 0);
+const PLANET_TYPES = ['ember', 'ice', 'jade', 'violet', 'sand'];
+const cache = new Map();
+export function planetCount(seed, sector, mode = 'voyage') {
+  if (mode === 'endless') return 3 + Math.floor(rng((seed ^ Math.imul(sector, 0x45d9f3b)) >>> 0)() * 3);
+  return Math.min(5, 3 + Math.floor((Math.max(1, sector) - 1) / 4));
+}
+function obscured(target, planets, radius) {
+  const dx = target.x - START.x, dy = target.y - START.y, d2 = dx * dx + dy * dy;
+  return planets.some(p => {
+    const t = ((p.x - START.x) * dx + (p.y - START.y) * dy) / d2;
+    if (t <= .08 || t >= .95) return false;
+    const closest = Math.hypot(START.x + t * dx - p.x, START.y + t * dy - p.y);
+    // The entire target circle sits behind a solid planet, including ship clearance.
+    return closest < p.radius + PROBE_RADIUS - (radius + PROBE_RADIUS) * t - 3;
+  });
+}
+function layout(seed, sector, count, attempt) {
+  const r = rng((seed ^ Math.imul(sector, 0x9e3779b1) ^ Math.imul(attempt, 0x85ebca6b)) >>> 0);
   const mirror = r() < .5 ? 1 : -1;
-  const kind = (sector - 1) % 4;
-  const planets = [{ x: 200 + mirror * (54 + r() * 18), y: 335 + r() * 30, radius: 25 + r() * 7, mass: 105000 + Math.min(sector, 12) * 2200 }];
-  if (kind === 1 || kind === 3) planets.push({ x: 200 - mirror * 107, y: 218, radius: 19, mass: 65000 });
-  const gate = { x: 200 - mirror * (35 + r() * 42), y: 97, radius: 31 };
-  const pickups = [{ x: 200 - mirror * 25, y: 450, radius: 9 }, { x: 200 - mirror * 39, y: 300, radius: 9 }, { x: gate.x + mirror * 12, y: 172, radius: 9 }];
-  return { planets, pickups, gate, sector, label: ['PERIAPSIS', 'BINARY TIDE', 'DUST CORRIDOR', 'DOUBLE SLING'][kind],
-    hazards: kind === 2 ? [{ x: 80, y: 258, radius: 13 }, { x: 321, y: 192, radius: 14 }] : [] };
+  const xs = [205, 165, 235, 188, 215];
+  const ys = { 3: [445, 325, 205], 4: [460, 355, 250, 145], 5: [475, 387, 300, 213, 160] }[count];
+  return ys.map((y, i) => ({
+    x: 200 + mirror * (xs[i] - 200) + (r() - .5) * 12,
+    y: y + (r() - .5) * 10,
+    radius: 20 + r() * 6,
+    mass: 120000 + r() * 55000,
+    type: PLANET_TYPES[(i + Math.floor(r() * PLANET_TYPES.length)) % PLANET_TYPES.length]
+  }));
+}
+function routeFor(planets, count) {
+  const corridor = { planets, pickups: [], hazards: [], gate: { x: -10000, y: -10000, radius: 1 } };
+  const targets = count === 3 ? [410, 300, 185] : count === 4 ? [435, 325, 215] : [445, 330, 220];
+  for (const power of [30, 20, 40, 50, 60, 70, 80, 90, 100]) {
+    for (let angle = -45; angle <= 45; angle += 3) {
+      const rad = angle * Math.PI / 180, speed = power / 100 * 368;
+      const velocity = { vx: Math.sin(rad) * speed, vy: -Math.cos(rad) * speed };
+      const s = createFlight(velocity), points = [];
+      for (let i = 0; i < 1681 && s.status === 'flight'; i++) {
+        advance(s, corridor);
+        if (i % 5 === 0 && s.y < 475 && s.y > 82) points.push({ x: s.x, y: s.y });
+      }
+      const gatePoint = points.findLast(p => p.y > 100 && p.y < 120 && p.x > 45 && p.x < 355 &&
+        obscured(p, planets, 22) && planets.every(q => Math.hypot(q.x - p.x, q.y - p.y) > q.radius + 26));
+      if (!gatePoint) continue;
+      const pickups = [];
+      for (const target of targets) {
+        const choices = points.filter(p => Math.abs(p.y - target) < 45 && p.x > 25 && p.x < 375 &&
+          obscured(p, planets, 9) && planets.every(q => Math.hypot(q.x - p.x, q.y - p.y) > q.radius + 18));
+        if (!choices.length) break;
+        const p = choices.reduce((a, b) => Math.abs(a.y - target) < Math.abs(b.y - target) ? a : b);
+        pickups.push({ ...p, radius: 9 });
+      }
+      if (pickups.length !== targets.length) continue;
+      const gate = { ...gatePoint, radius: 22 };
+      const world = { planets, pickups, gate, hazards: [] };
+      // Reject paths whose gate triggers before the stars can all be collected.
+      const check = createFlight(velocity);
+      for (let i = 0; i < 1681 && check.status === 'flight'; i++) advance(check, world);
+      if (check.status === 'gate' && check.collected.length === pickups.length) {
+        return { pickups, gate, route: { angle, power } };
+      }
+    }
+  }
+  return null;
+}
+export function encounter(seed, sector = 1, mode = 'voyage') {
+  const key = `${seed >>> 0}:${sector}:${mode}`;
+  if (cache.has(key)) return cache.get(key);
+  const count = planetCount(seed, sector, mode);
+  let planets, route;
+  for (let attempt = 0; attempt < 5 && !route; attempt++) {
+    planets = layout(seed, sector, count, attempt);
+    route = routeFor(planets, count);
+  }
+  if (!route) {
+    // Fixed, validated layout as a deterministic last resort, never a blind exit.
+    planets = layout(1, 1, count, 0);
+    route = routeFor(planets, count);
+    if (!route) throw new Error('No reachable gravity route for encounter');
+  }
+  const world = { planets, pickups: route.pickups, gate: route.gate, hazards: [], sector,
+    label: ['TIDAL TURN', 'BINARY ARC', 'GRAVITY THREAD', 'FAR ORBIT'][((sector - 1) % 4 + 4) % 4],
+    reference: route.route };
+  cache.set(key, world);
+  if (cache.size > 24) cache.delete(cache.keys().next().value);
+  return world;
 }
 export function launchVector(dx, dy) {
   const d = Math.hypot(dx, dy), length = Math.min(115, d);

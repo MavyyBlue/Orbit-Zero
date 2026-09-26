@@ -10,16 +10,19 @@ conversations were imported. Only the owner-uploaded ZIP ingestion approach is s
 
 ## Play
 
-Pull back near the probe, then release. The dotted arc covers the first 2.1 seconds
-of flight using exactly the same fixed-step simulation. Collect stardust, skim
-planets without crashing, and reach the exit ring. Each surviving near miss raises
+Pull back near the little ship, then release. The dotted arc covers the first 2.1 seconds
+of flight using exactly the same fixed-step simulation. Curve around varied
+gravitational planets to collect stars tucked beyond their direct sightlines and
+reach the exit ring. Each surviving near miss raises
 the current sector's multiplier. Crash, escape the field, or time out after 14
 seconds and restart immediately.
 
-- **Voyage:** twelve generated sectors and an ending.
-- **Endless:** keep crossing sectors until the run ends.
+- **Voyage:** twelve generated sectors and an ending; three planets in sectors 1–4,
+  four in 5–8, five in 9–12.
+- **Endless:** keep crossing sectors until the run ends; each sector has three to five planets.
 - **Daily orbit:** repeatable offline UTC-date seed, twelve sectors, local best.
-- **Hangar:** three cosmetic probe colors, earned stardust, four achievement badges.
+- **Hangar:** five small ship silhouettes, unlocked with collected stars
+  (banked as stardust after a run); four achievement badges.
 - Sound, ambient music, haptics, reduced motion, high contrast, button/keyboard aiming.
 - Local progress persists; an in-progress flight does not survive process death.
 
