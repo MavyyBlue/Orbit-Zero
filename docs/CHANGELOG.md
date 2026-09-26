@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0 lint correction — 2026-09-26
+
+Moved the API 35 edge-to-edge theme attribute to `values-v35` and removed the
+unneeded API 27 navigation-bar attribute from the API 26 base theme. Run #4
+identified both errors; this corrected source awaits a new GitHub run.
+
 ## 0.1.0 candidate — 2026-09-26
 
 First newly authored production candidate after owner expanded the bootstrap scope

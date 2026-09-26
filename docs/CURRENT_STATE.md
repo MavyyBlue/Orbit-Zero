@@ -3,11 +3,8 @@
 - Intended repository: `MavyyBlue/Orbit-Zero`; intended branch: `main`.
 - Candidate: **0.1.0 source ZIP**, identified by per-file SHA-256 in
   `.orbit-zero-package.json` and the delivered archive checksum.
-- **Live HEAD/branch/tree: not verified.** The connector returned 404 and no accessible
-  installations. Nothing was pushed from this environment. Do not substitute a remembered SHA.
-- **Certified SHA: none. Imported candidate SHA: pending owner upload.** The bootstrap
-  summary and APK evidence will record the exact imported commit. A file cannot contain
-  its own future Git commit hash. Replace this pending entry during a later evidence-backed sync.
+- Inspected live `main` at `65972fc3d45aa2bf7712b68e001a5e5465a3e45c` (workflow run #4). Earlier source import succeeded; the newest ZIP revision is not uploaded yet.
+- **Certified SHA: none.** Run #4 failed Android lint with two resource API-level errors. The corrected source candidate awaits owner upload and an exact-SHA CI run. A file cannot contain its own future Git commit hash.
 - Phase 0 foundation authored; broader playable implementation authorized by owner.
   No phases are independently certified.
 
@@ -29,14 +26,14 @@ No substantial code from another project was imported.
 - Generated-sector reachability: 48 sampled worlds passed.
 - Preview equivalence: 144 seeded/sector cases passed.
 - Workflow YAML parsed and all embedded shell scripts passed `bash -n`.
+- Run #4 passed source, JavaScript, importer and real-browser smoke checks; Android debug assembly completed, then lint failed on two theme attributes. The full lint artifact was inspected and both errors were corrected in version-qualified resource XML. This revision has not been run in GitHub CI.
 - Final source archive manifest/hash and clean-checkout import were checked at packaging.
 
 ## Not validated / limitations
 
-Real browser rendering and touch, Android compilation/lint/runtime, physical-phone
+Real phone touch, corrected-resource Android lint/runtime, physical-phone
 feel, audio output/haptic output, device performance, upgrade installation and independent
-Mio QA remain pending. Browser download failed; Android SDK/Gradle were not available
-locally and the Gradle download probe timed out. GitHub CI has **not** run for this package.
+Mio QA remain pending. GitHub run #4 exercised browser rendering and debug assembly for the preceding package; lint did not pass. Local Android SDK/Gradle were unavailable. GitHub CI has **not** run for this corrected package.
 
 This is a compact complete playable candidate, not a polished/store-certified game.
 No v0.0.2 source was available; only the owner's described feel reference was used.
