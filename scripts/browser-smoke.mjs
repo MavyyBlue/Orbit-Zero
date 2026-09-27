@@ -7,27 +7,44 @@ mkdirSync('build/screenshots', { recursive: true });
 try {
   for (const viewport of [{ width: 360, height: 640 }, { width: 412, height: 915 }]) {
     const context = await browser.newContext({ viewport, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
-    const page = await context.newPage(), errors = [];
+    const page = await context.newPage(), errors = [], failedAssets = [];
     page.on('pageerror', error => errors.push(error.message));
+    page.on('response', response => { if (response.status() >= 400 && response.url().includes('/art/')) failedAssets.push(`${response.status()} ${response.url()}`); });
+    const artLoaded = async () => {
+      await page.locator('img:visible').evaluateAll(async images => { await Promise.all(images.map(image => image.decode().catch(() => {}))); });
+      const broken = await page.locator('img:visible').evaluateAll(images => images.filter(image => !image.complete || image.naturalWidth === 0).map(image => image.src));
+      assert.deepEqual(broken, [], `Broken images at ${viewport.width}px`);
+      assert.deepEqual(failedAssets, [], `Failed art requests at ${viewport.width}px`);
+    };
     await page.goto('http://127.0.0.1:8080');
     await page.locator('#play').waitFor();
+    await artLoaded();
     await page.screenshot({ path: `build/screenshots/home-${viewport.width}.png` });
     await page.locator('#donate').click();
-    await page.locator('#donatePending').waitFor();
-    assert.equal(await page.locator('#donatePending').isDisabled(), true);
+    await page.locator('.donate-tiers button').first().waitFor();
+    assert.equal(await page.locator('.donate-tiers button:disabled').count(), 3);
+    await artLoaded();
     await page.screenshot({ path: `build/screenshots/support-${viewport.width}.png` });
     await page.locator('#supportAbout').click();
     assert.equal(await page.locator('#panelBody').getByText('AI tools assisted', { exact: false }).count(), 1);
     await page.locator('#infoHome').click();
+    await page.locator('#settings').click();
+    await artLoaded();
+    await page.screenshot({ path: `build/screenshots/settings-${viewport.width}.png` });
+    await page.locator('#settingsBack').click();
     await page.locator('#hangar').click();
+    await artLoaded();
+    await page.screenshot({ path: `build/screenshots/hangar-${viewport.width}.png` });
     await page.locator('#interior-ion').click();
     await page.locator('#room-seat').waitFor();
     await page.locator('#roomColor').evaluate(el => { el.value = '#4267af'; el.dispatchEvent(new Event('input', { bubbles: true })); });
     assert.equal(await page.locator('.interior-stage').evaluate(el => getComputedStyle(el).getPropertyValue('--room-color').trim()), '#4267af');
     assert.equal(await page.locator('.interior-stage').evaluate(el => el.scrollWidth <= el.clientWidth + 1), true);
+    await artLoaded();
     await page.screenshot({ path: `build/screenshots/interior-${viewport.width}.png` });
     await page.locator('#roomShop').click();
     await page.locator('#shop-filter-decal').click();
+    await artLoaded();
     await page.screenshot({ path: `build/screenshots/shop-${viewport.width}.png` });
     await page.locator('#shopBack').click(); await page.locator('#roomBack').click(); await page.locator('#hangarBack').click();
     await page.locator('#settings').click();
@@ -47,8 +64,7 @@ try {
     await page.locator('#pause').click(); await page.locator('#quit').click(); await page.locator('#resultHome').click();
     await page.locator('#hangar').click(); await page.locator('#hangarBack').click();
     await page.locator('#help').click(); await page.locator('#helpBack').click();
-    const brokenImages = await page.locator('img').evaluateAll(images => images.filter(img => !img.complete || img.naturalWidth === 0).map(img => img.src));
-    assert.deepEqual(brokenImages, [], `Missing visible images at ${viewport.width}px`);
+    await artLoaded();
     assert.deepEqual(errors, [], `Browser errors at ${viewport.width}px`);
     await context.close();
   }

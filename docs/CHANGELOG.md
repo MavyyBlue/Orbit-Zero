@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-27 — UI image and portrait layout correction
+
+- Restored three empty runtime images from Lyra's original archive and added an all-image integrity check.
+- Reworked home, settings, hangar, five ship interior presentation, and support page toward Mavyy's portrait references; kept real saved values and disabled donation tiers.
+- Extended phone-size browser smoke to capture every referenced screen and fail on broken images or failed art requests.
+
 ## Lyra UI and cosmetic rooms — pending owner import
 
 Replaced the menu presentation with Lyra's optimized art. Added five layered

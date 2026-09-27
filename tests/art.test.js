@@ -27,3 +27,19 @@ test('all referenced UI, ship, interior, shop and support art is shipped within 
   const css = readFileSync(new URL('../web/room-layouts.css', import.meta.url), 'utf8');
   for (const match of css.matchAll(/url\("art\/([^"\)]+)"\)/g)) assert.ok(existsSync(`${root}${match[1]}`), match[1]);
 });
+
+test('every packaged image has WebP bytes and every stylesheet art URL resolves', () => {
+  const walk = dir => readdirSync(dir, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? walk(`${dir}/${entry.name}`) : [`${dir}/${entry.name}`]);
+  const files = walk(root).filter(name => name.endsWith('.webp'));
+  assert.equal(files.length, 121);
+  for (const file of files) {
+    const bytes = readFileSync(file);
+    assert.ok(bytes.length > 12, `${file} is empty`);
+    assert.equal(bytes.toString('ascii', 0, 4), 'RIFF', `${file} RIFF header`);
+    assert.equal(bytes.toString('ascii', 8, 12), 'WEBP', `${file} WebP header`);
+  }
+  for (const name of ['style.css', 'room-layouts.css', 'mockup-layout.css']) {
+    const css = readFileSync(new URL(`../web/${name}`, import.meta.url), 'utf8');
+    for (const [, path] of css.matchAll(/url\(['"]?(art\/[^)'"\s]+)/g)) assert.ok(existsSync(new URL(`../web/${path}`, import.meta.url)), `${name}: ${path}`);
+  }
+});

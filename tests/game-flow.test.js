@@ -10,7 +10,9 @@ test('complete UI voyage, pause, retry, save restoration data and cosmetic/setti
   const context = new Proxy({}, { get: (_, k) => k === 'createRadialGradient' ? () => ({ addColorStop() {} }) : () => {}, set: () => true });
   function parse(html) { for (const match of html.matchAll(/<[^>]*\bid="([^"]+)"[^>]*>/g)) { const id = match[1]; if (!elements.has(id)) elements.set(id, new Element(id)); const e = elements.get(id); e.hidden = /\bhidden\b/.test(match[0]); const value = match[0].match(/value="([^"]*)"/); if (value) e.value = value[1]; } }
   class Element {
-    constructor(id) { this.id = id; this.hidden = false; this.value = ''; this.textContent = ''; this.classList = { toggle() {} }; }
+    constructor(id) { this.id = id; this.hidden = false; this.value = ''; this.textContent = ''; this.classList = { toggle() {} }; this.style = { setProperty() {} }; }
+    setAttribute(key, value) { this[key] = value; }
+    querySelector() { return new Element('stage'); }
     set innerHTML(s) { this.html = s; parse(s); }
     get innerHTML() { return this.html || ''; }
     getBoundingClientRect() { return { width: 400, height: 720, left: 0, top: 0 }; }
@@ -27,7 +29,8 @@ test('complete UI voyage, pause, retry, save restoration data and cosmetic/setti
   const el = id => elements.get(id), click = id => { assert.equal(typeof el(id)?.onclick, 'function', id); el(id).onclick(); };
   await import('../web/game.js');
   assert.equal(el('home').hidden, false);
-  click('donate'); assert.match(el('panelBody').innerHTML, /Donations opening later/);
+  click('donate'); assert.match(el('panelBody').innerHTML, /Payments are not available yet/);
+  assert.equal((el('panelBody').innerHTML.match(/<button disabled aria-label/g) || []).length, 3);
   assert.match(el('panelBody').innerHTML, /lyra_yuki_wave.webp/);
   click('supportAbout'); assert.match(el('panelBody').innerHTML, /AI tools assisted/);
   assert.doesNotMatch(el('panelBody').innerHTML, /Akari|Mio|https?:\/\//);
@@ -66,7 +69,7 @@ test('complete UI voyage, pause, retry, save restoration data and cosmetic/setti
   assert.equal(saved.victories, 1); assert.equal(saved.gates, 12); assert.equal(saved.runs, 1); assert.ok(saved.best >= 6000);
   click('retry'); assert.equal(el('panel').hidden, true); click('pause'); click('quit'); click('resultHome');
   click('hangar'); assert.match(el('panelBody').innerHTML, /Zero to infinity/);
-  assert.equal((el('panelBody').innerHTML.match(/class="ship-icon"/g) || []).length, 5);
+  assert.equal((el('panelBody').innerHTML.match(/class="ship-portrait"/g) || []).length, 5);
   click('hangarBack');
   click('daily'); assert.match(el('sectorLabel').textContent, /DAILY/);
   // Pointer cancellation must not launch.
