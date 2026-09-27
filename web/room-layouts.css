@@ -1,0 +1,36 @@
+/* Positions from Lyra’s normalized interior slot specs; no inline styles under CSP. */
+.interior-stage.ship-scout .room-window{left:13.0%;top:12.0%;width:74.0%;height:36.0%}
+.interior-stage.ship-scout .room-furn.seat{left:30.0%;top:74.0%}
+.interior-stage.ship-scout .room-furn.console{left:68.0%;top:70.0%}
+.interior-stage.ship-scout .room-furn.plant{left:86.0%;top:60.0%}
+.interior-stage.ship-scout .room-furn.lamp{left:72.0%;top:44.0%}
+.interior-stage.ship-scout .room-tint.wall .room-color{-webkit-mask-image:url("art/interiors/scout/wall_base.webp");mask-image:url("art/interiors/scout/wall_base.webp")}
+.interior-stage.ship-scout .room-tint.ceiling .room-color{-webkit-mask-image:url("art/interiors/scout/ceiling_base.webp");mask-image:url("art/interiors/scout/ceiling_base.webp")}
+.interior-stage.ship-arrow .room-window{left:9.0%;top:12.0%;width:82.0%;height:32.0%}
+.interior-stage.ship-arrow .room-furn.seat{left:32.0%;top:74.0%}
+.interior-stage.ship-arrow .room-furn.console{left:66.0%;top:68.0%}
+.interior-stage.ship-arrow .room-furn.plant{left:86.0%;top:58.0%}
+.interior-stage.ship-arrow .room-furn.lamp{left:50.0%;top:12.0%}
+.interior-stage.ship-arrow .room-tint.wall .room-color{-webkit-mask-image:url("art/interiors/arrow/wall_base.webp");mask-image:url("art/interiors/arrow/wall_base.webp")}
+.interior-stage.ship-arrow .room-tint.ceiling .room-color{-webkit-mask-image:url("art/interiors/arrow/ceiling_base.webp");mask-image:url("art/interiors/arrow/ceiling_base.webp")}
+.interior-stage.ship-manta .room-window{left:4.0%;top:11.0%;width:92.0%;height:30.0%}
+.interior-stage.ship-manta .room-furn.seat{left:34.0%;top:76.0%}
+.interior-stage.ship-manta .room-furn.console{left:70.0%;top:62.0%}
+.interior-stage.ship-manta .room-furn.plant{left:88.0%;top:54.0%}
+.interior-stage.ship-manta .room-furn.lamp{left:22.0%;top:16.0%}
+.interior-stage.ship-manta .room-tint.wall .room-color{-webkit-mask-image:url("art/interiors/manta/wall_base.webp");mask-image:url("art/interiors/manta/wall_base.webp")}
+.interior-stage.ship-manta .room-tint.ceiling .room-color{-webkit-mask-image:url("art/interiors/manta/ceiling_base.webp");mask-image:url("art/interiors/manta/ceiling_base.webp")}
+.interior-stage.ship-needle .room-window{left:35.0%;top:6.0%;width:30.0%;height:52.0%}
+.interior-stage.ship-needle .room-furn.seat{left:50.0%;top:74.0%}
+.interior-stage.ship-needle .room-furn.console{left:50.0%;top:56.0%}
+.interior-stage.ship-needle .room-furn.plant{left:74.0%;top:62.0%}
+.interior-stage.ship-needle .room-furn.lamp{left:50.0%;top:10.0%}
+.interior-stage.ship-needle .room-tint.wall .room-color{-webkit-mask-image:url("art/interiors/needle/wall_base.webp");mask-image:url("art/interiors/needle/wall_base.webp")}
+.interior-stage.ship-needle .room-tint.ceiling .room-color{-webkit-mask-image:url("art/interiors/needle/ceiling_base.webp");mask-image:url("art/interiors/needle/ceiling_base.webp")}
+.interior-stage.ship-starling .room-window{left:19.0%;top:8.0%;width:62.0%;height:44.0%}
+.interior-stage.ship-starling .room-furn.seat{left:32.0%;top:75.0%}
+.interior-stage.ship-starling .room-furn.console{left:68.0%;top:70.0%}
+.interior-stage.ship-starling .room-furn.plant{left:86.0%;top:60.0%}
+.interior-stage.ship-starling .room-furn.lamp{left:50.0%;top:16.0%}
+.interior-stage.ship-starling .room-tint.wall .room-color{-webkit-mask-image:url("art/interiors/starling/wall_base.webp");mask-image:url("art/interiors/starling/wall_base.webp")}
+.interior-stage.ship-starling .room-tint.ceiling .room-color{-webkit-mask-image:url("art/interiors/starling/ceiling_base.webp");mask-image:url("art/interiors/starling/ceiling_base.webp")}

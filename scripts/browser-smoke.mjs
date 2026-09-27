@@ -12,6 +12,24 @@ try {
     await page.goto('http://127.0.0.1:8080');
     await page.locator('#play').waitFor();
     await page.screenshot({ path: `build/screenshots/home-${viewport.width}.png` });
+    await page.locator('#donate').click();
+    await page.locator('#donatePending').waitFor();
+    assert.equal(await page.locator('#donatePending').isDisabled(), true);
+    await page.screenshot({ path: `build/screenshots/support-${viewport.width}.png` });
+    await page.locator('#supportAbout').click();
+    assert.equal(await page.locator('#panelBody').getByText('AI tools assisted', { exact: false }).count(), 1);
+    await page.locator('#infoHome').click();
+    await page.locator('#hangar').click();
+    await page.locator('#interior-ion').click();
+    await page.locator('#room-seat').waitFor();
+    await page.locator('#roomColor').evaluate(el => { el.value = '#4267af'; el.dispatchEvent(new Event('input', { bubbles: true })); });
+    assert.equal(await page.locator('.interior-stage').evaluate(el => getComputedStyle(el).getPropertyValue('--room-color').trim()), '#4267af');
+    assert.equal(await page.locator('.interior-stage').evaluate(el => el.scrollWidth <= el.clientWidth + 1), true);
+    await page.screenshot({ path: `build/screenshots/interior-${viewport.width}.png` });
+    await page.locator('#roomShop').click();
+    await page.locator('#shop-filter-decal').click();
+    await page.screenshot({ path: `build/screenshots/shop-${viewport.width}.png` });
+    await page.locator('#shopBack').click(); await page.locator('#roomBack').click(); await page.locator('#hangarBack').click();
     await page.locator('#settings').click();
     await page.locator('#set-sound').click(); await page.locator('#set-music').click(); await page.locator('#set-haptics').click();
     await page.locator('#settingsBack').click(); await page.reload(); await page.locator('#settings').click();
@@ -29,6 +47,8 @@ try {
     await page.locator('#pause').click(); await page.locator('#quit').click(); await page.locator('#resultHome').click();
     await page.locator('#hangar').click(); await page.locator('#hangarBack').click();
     await page.locator('#help').click(); await page.locator('#helpBack').click();
+    const brokenImages = await page.locator('img').evaluateAll(images => images.filter(img => !img.complete || img.naturalWidth === 0).map(img => img.src));
+    assert.deepEqual(brokenImages, [], `Missing visible images at ${viewport.width}px`);
     assert.deepEqual(errors, [], `Browser errors at ${viewport.width}px`);
     await context.close();
   }

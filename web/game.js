@@ -1,5 +1,7 @@
 import { W, H, DT, START, GRAVITY_REACH, encounter, launchVector, createFlight, advance, predict, dailySeed, rng } from './simulation.js';
-import { loadSave, writeSave, SKINS, SHIP_OUTLINES, buySkin } from './save.js';
+import { loadSave, writeSave, SKINS, SHIP_OUTLINES, buySkin, roomFor, setRoomColor, buyDecor } from './save.js';
+import { DECOR } from './decor.js';
+import { art, icon, interiorMarkup } from './ui-art.js';
 import { Sound } from './audio.js';
 const $ = id => document.getElementById(id), canvas = $('space'), ctx = canvas.getContext('2d');
 let storage; try { storage = window.localStorage; } catch { storage = null; }
@@ -7,7 +9,7 @@ const loaded = loadSave(storage), save = loaded.save, sound = new Sound(save.set
 let phase = 'home', previous = 'aim', mode = 'voyage', seed = 1, sector = 1, total = 0, shards = 0, nears = 0, gates = 0;
 let world = encounter(1), flight = null, vector = null, drag = null, trail = [], particles = [], preview = null;
 let clock = 0, accumulator = 0, toastUntil = 0, transition = 0, impactAge = 0, width = 400, height = 720, scale = 1, offsetX = 0, offsetY = 0;
-let finished = false, assist = false, dailyKey = '', bestBefore = 0, settingsOrigin = 'home';
+let finished = false, assist = false, dailyKey = '', bestBefore = 0, settingsOrigin = 'home', activeRoomId = 'ion';
 const starRng = rng(9201), stars = Array.from({ length: 95 }, () => ({ x: starRng() * W, y: starRng() * H, r: starRng() * 1.1 + .25, a: starRng() * .45 + .2 }));
 function persist() { $('saveWarning').hidden = writeSave(storage, save); }
 $('saveWarning').hidden = loaded.available;
@@ -71,10 +73,9 @@ function finish(victory, reason) {
   $('retry').onclick = () => start(mode); $('resultHome').onclick = home;
 }
 function settings(from = 'home') {
-  settingsOrigin = from;
-  phase = 'settings'; $('notice').textContent = ''; $('toast').textContent = '';
-  const labels = { sound: 'Sound effects', music: 'Ambient music', haptics: 'Haptic feedback', reduced: 'Reduce motion', contrast: 'High contrast text' };
-  showPanel(`<span class="eyebrow">MAKE SPACE YOURS</span><h2>Settings</h2>${Object.entries(labels).map(([k, label]) => `<div class="row"><span>${label}</span><button id="set-${k}" aria-pressed="${save.settings[k]}">${save.settings[k] ? 'On' : 'Off'}</button></div>`).join('')}<p>Drag anywhere near the ship to aim. Button aiming offers sliders and a launch button. No purchases, accounts, or network connection.</p><button class="primary" id="settingsBack">Done</button>`);
+  settingsOrigin = from; phase = 'settings'; $('notice').textContent = ''; $('toast').textContent = '';
+  const labels = { sound: ['Sound effects', 'icon_sound'], music: ['Ambient music', 'icon_music'], haptics: ['Haptic feedback', 'icon_haptic'], reduced: ['Reduce motion', 'icon_motion'], contrast: ['High contrast text', 'icon_contrast'] };
+  showPanel(`<span class="eyebrow">MAKE SPACE YOURS</span><h2>Settings</h2><div class="art-list">${Object.entries(labels).map(([k, [label, image]]) => `<div class="row setting-row"><span>${icon(image)}${label}</span><button id="set-${k}" aria-pressed="${save.settings[k]}" aria-label="${label}: ${save.settings[k] ? 'On' : 'Off'}"><img class="toggle-art" src="${art('ui/buttons/toggle_' + (save.settings[k] ? 'on' : 'off'))}" alt=""><span>${save.settings[k] ? 'On' : 'Off'}</span></button></div>`).join('')}</div><p>Drag near the ship to aim. Button aiming offers sliders and a launch button. Progress stays on this device.</p><button class="primary" id="settingsBack">Done</button>`);
   for (const k of Object.keys(labels)) $(`set-${k}`).onclick = () => { save.settings[k] = !save.settings[k]; persist(); applySettings(); sound.unlock(); settings(from); };
   $('settingsBack').onclick = () => { if (from === 'pause') { phase = previous; pause(); } else home(); };
 }
@@ -84,14 +85,51 @@ function shipIcon(style) {
 }
 function hangar() {
   phase = 'hangar';
-  showPanel(`<span class="eyebrow">YOUR LITTLE CORNER OF SPACE</span><h2>Hangar</h2><p>${save.shards} stardust · Ship styles only. Every ship flies identically.</p>${SKINS.map(s => `<div class="row"><span class="ship-choice">${shipIcon(s)}<span>${s.name}<small>${save.skin === s.id ? 'Equipped' : save.owned.includes(s.id) ? 'Owned' : `${s.price} stardust`}</small></span></span><button id="skin-${s.id}" ${!save.owned.includes(s.id) && save.shards < s.price ? 'disabled' : ''}>${save.skin === s.id ? 'Selected' : save.owned.includes(s.id) ? 'Equip' : 'Unlock'}</button></div>`).join('')}<h3>Flight log</h3>${[['First light', save.gates >= 1, 'Reach your first gate'], ['Thread the needle', save.near >= 1, 'Survive a near miss'], ['Wayfarer', save.gates >= 25, 'Reach 25 gates'], ['Zero to infinity', save.victories >= 1, 'Complete a voyage']].map(([name, done, hint]) => `<div class="row ${done ? 'badge' : 'dim'}"><span>${done ? '✓' : '○'} ${name}<small>${hint}</small></span></div>`).join('')}<p>${save.runs} runs · ${save.gates} gates · ${save.near} near misses</p><p>Today’s daily best: ${(save.daily[new Date().toISOString().slice(0, 10)] || 0).toLocaleString()}</p><button class="primary" id="hangarBack">Return to dock</button>`);
-  for (const s of SKINS) $(`skin-${s.id}`).onclick = () => { if (buySkin(save, s.id)) { persist(); hangar(); } }; $('hangarBack').onclick = home;
+  showPanel(`<span class="eyebrow">YOUR LITTLE CORNER OF SPACE</span><h2>Hangar</h2><p class="currency">${icon('icon_sparkle')} ${save.shards} stardust · Cosmetic ships, identical flight physics</p><div class="fleet">${SKINS.map(s => `<div class="ship-card"><img class="ship-portrait" src="${art('ui/icons/ship_' + s.shape)}" alt="${s.name} artwork"><div class="ship-card-body"><strong>${s.name}</strong><span class="flight-shape">Flight shape ${shipIcon(s)}</span><small>${save.skin === s.id ? 'Selected' : save.owned.includes(s.id) ? 'Owned' : `${s.price} stardust`}</small><div class="ship-actions"><button id="skin-${s.id}" ${!save.owned.includes(s.id) && save.shards < s.price ? 'disabled' : ''}>${save.skin === s.id ? 'Selected' : save.owned.includes(s.id) ? 'Equip' : 'Unlock'}</button>${save.owned.includes(s.id) ? `<button id="interior-${s.id}" aria-label="View ${s.name} interior">Interior ↗</button>` : ''}</div></div></div>`).join('')}</div><button class="primary" id="shopFromHangar">${icon('icon_bag')} Decor shop ↗</button><h3>Flight log</h3>${[['First light', save.gates >= 1, 'Reach your first gate'], ['Thread the needle', save.near >= 1, 'Survive a near miss'], ['Wayfarer', save.gates >= 25, 'Reach 25 gates'], ['Zero to infinity', save.victories >= 1, 'Complete a voyage']].map(([name, done, hint]) => `<div class="row ${done ? 'badge' : 'dim'}"><span>${done ? '✓' : '○'} ${name}<small>${hint}</small></span></div>`).join('')}<p>${save.runs} runs · ${save.gates} gates · ${save.near} near misses</p><p>Today’s daily best: ${(save.daily[new Date().toISOString().slice(0, 10)] || 0).toLocaleString()}</p><button class="back" id="hangarBack">Return to dock</button>`);
+  for (const s of SKINS) {
+    $(`skin-${s.id}`).onclick = () => { if (buySkin(save, s.id)) { persist(); hangar(); } };
+    if (save.owned.includes(s.id)) $(`interior-${s.id}`).onclick = () => interior(s.id);
+  }
+  $('shopFromHangar').onclick = () => decorShop(save.skin); $('hangarBack').onclick = home;
+}
+function interior(shipId = save.skin) {
+  if (!save.owned.includes(shipId)) { hangar(); return; }
+  activeRoomId = shipId;
+  phase = 'interior'; const ship = SKINS.find(s => s.id === shipId), room = roomFor(save, shipId);
+  showPanel(`<span class="eyebrow">A LITTLE PLACE BETWEEN ORBITS</span><h2>${ship.name} interior</h2><p>Tap a furnishing to browse decor. Colors and furnishings are cosmetic.</p>${interiorMarkup(ship, room)}<label class="tint-control">Wall color <input id="roomColor" type="color" value="${room.color}" aria-label="${ship.name} interior wall color"></label><p class="currency">${icon('icon_sparkle')} ${save.shards} stardust</p><button class="primary" id="roomShop">${icon('icon_bag')} Decor shop ↗</button><button class="back" id="roomBack">Back to hangar</button>`);
+  $('panelBody').querySelector?.('.interior-stage')?.style.setProperty('--room-color', room.color);
+  $('roomColor').oninput = () => { if (setRoomColor(save, shipId, $('roomColor').value)) { persist(); const stage = $('panelBody').querySelector?.('.interior-stage'); if (stage) stage.style.setProperty('--room-color', $('roomColor').value); } };
+  for (const slot of ['seat', 'console', 'plant', 'lamp']) $(`room-${slot}`).onclick = () => decorShop(shipId, slot);
+  $('roomShop').onclick = () => decorShop(shipId); $('roomBack').onclick = hangar;
+}
+function decorShop(shipId = save.skin, filter = 'all') {
+  if (!save.owned.includes(shipId)) { hangar(); return; }
+  phase = 'shop'; activeRoomId = shipId;
+  const ship = SKINS.find(s => s.id === shipId), room = roomFor(save, shipId);
+  const categories = ['all', 'seat', 'console', 'plant', 'lamp', 'decal'];
+  showPanel(`<span class="eyebrow">MAKE THIS SHIP YOURS</span><h2>Decor shop</h2><p>For the ${ship.name} · ${save.shards} stardust. One-time purchases; use an item in any owned ship.</p><div class="shop-tabs">${categories.map(k => `<button id="shop-filter-${k}" aria-pressed="${filter === k}">${k === 'all' ? 'All' : k === 'decal' ? 'Decals' : k[0].toUpperCase() + k.slice(1)}</button>`).join('')}</div><div class="shop-list">${DECOR.filter(d => filter === 'all' || d.slot === filter).map(d => `<div class="shop-card"><img src="${art('shop/' + d.file)}" alt="${d.name}"><div><strong>${d.name}</strong><small>${d.slot} · ${save.decorOwned.includes(d.id) ? 'Owned' : `${d.price} stardust`}</small></div><button id="decor-${d.id}" ${!save.decorOwned.includes(d.id) && save.shards < d.price ? 'disabled' : ''}>${room.slots[d.slot] === d.id ? 'Placed' : save.decorOwned.includes(d.id) ? 'Place' : 'Unlock'}</button></div>`).join('')}</div><button class="back" id="shopBack">Back to interior</button>`);
+  for (const k of categories) $(`shop-filter-${k}`).onclick = () => decorShop(shipId, k);
+  for (const d of DECOR.filter(d => filter === 'all' || d.slot === filter)) $(`decor-${d.id}`).onclick = () => { if (buyDecor(save, shipId, d.id)) { persist(); decorShop(shipId, filter); } };
+  $('shopBack').onclick = () => interior(shipId);
+}
+function supportInfo() {
+  phase = 'supportInfo';
+  showPanel(`<span class="eyebrow">ABOUT THIS LITTLE UNIVERSE</span><h2>Made with heart.</h2><p>Orbit Zero is Mavyy’s game. Yuki helped build and shape it, and Lyra made this visual collection. AI tools assisted the creative and development work.</p><p>The game is offline and playable without a donation. The support link has not been set up, so no payment can be made here yet.</p><button class="primary" id="infoBack">Back to support</button><button class="back" id="infoHome">Return to dock</button>`);
+  $('infoBack').onclick = support; $('infoHome').onclick = home;
+}
+function support() {
+  phase = 'donate';
+  showPanel(`<span class="eyebrow">A SMALL THANK YOU</span><h2>Keep our little universe glowing.</h2><div class="donate-hero"><img src="${art(save.settings.reduced ? 'donate/donate_hero' : 'donate/lyra_yuki_wave')}" alt="Lyra and Yuki waving"></div><p>Thank you for playing Orbit Zero. Every launch helps us learn what makes this little game worth coming back to.</p><p>Optional support will help future art and development. The donation link is still being prepared; there is no payment or checkout in the game today.</p><button class="primary" id="donatePending" disabled>Donations opening later</button><button class="back" id="supportAbout">${icon('icon_info')} About the creators</button><button class="back" id="supportBack">Return to dock</button>`);
+  $('supportAbout').onclick = supportInfo; $('supportBack').onclick = home;
 }
 function help() {
-  phase = 'help'; showPanel('<span class="eyebrow">FLIGHT SCHOOL · 30 SECONDS</span><h2>Let gravity help.</h2><p><b>1. Pull back.</b> Touch near the little ship and drag opposite your intended direction. More pull means more speed.</p><p><b>2. Read the line.</b> The dotted arc shows only the first 2.1 seconds. It uses the exact same physics as your flight. Beyond the dots, you’re on your own.</p><p><b>3. Release.</b> Collect stars hidden beyond the planets’ direct sightlines by curving around their gravity. Skim a planet and survive to earn a near-miss multiplier. Enter the bright ring to reach the next sector.</p><p>Hit a planet, leave the field, or drift for 14 seconds and the run ends. Voyage and Daily have 12 sectors; Endless keeps going. Daily uses one shared offline UTC-date seed, with no leaderboard.</p><p>Keyboard: arrows adjust angle and power, Space launches, Escape pauses. Button aiming is available below the ship.</p><button class="primary" id="helpBack">Got it ↗</button>'); $('helpBack').onclick = home;
+  phase = 'help';
+  showPanel(`<span class="eyebrow">FLIGHT SCHOOL · 30 SECONDS</span><h2>Let gravity help.</h2><div class="help-card"><img src="${art('ui/illustrations/illustration_aim')}" alt="A ship following a drag arc"><p><b>1. Pull back.</b> Touch near the little ship and drag opposite your intended direction. More pull means more speed.</p></div><p><b>2. Read the line.</b> The dotted arc shows only the first 2.1 seconds. It uses the exact same physics as your flight. Beyond the dots, you’re on your own.</p><p><b>3. Release.</b> Collect stars hidden beyond the planets’ direct sightlines by curving around their gravity. Skim a planet and survive to earn a near-miss multiplier. Enter the bright ring to reach the next sector.</p><p>Hit a planet, leave the field, or drift for 14 seconds and the run ends. Voyage and Daily have 12 sectors; Endless keeps going. Daily uses one shared offline UTC-date seed, with no leaderboard.</p><p>Keyboard: arrows adjust angle and power, Space launches, Escape pauses. Button aiming is available below the ship.</p><button class="primary" id="helpBack">Got it ↗</button>`);
+  $('helpBack').onclick = home;
 }
 $('play').onclick = () => start('voyage'); $('endless').onclick = () => start('endless'); $('daily').onclick = () => start('daily');
 $('pause').onclick = pause; $('settings').onclick = () => settings(); $('hangar').onclick = hangar; $('help').onclick = help;
+$('donate').onclick = support; $('donateInfo').onclick = supportInfo;
 $('aimToggle').onclick = () => { assist = !assist; $('assist').hidden = !assist; $('aimToggle').textContent = assist ? 'Hide button aiming' : 'Button aiming'; if (assist) aimFromControls(); else { vector = null; preview = null; } };
 $('angle').oninput = $('power').oninput = aimFromControls; $('launchButton').onclick = launch;
 function point(e) { const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left - offsetX) / scale, y: (e.clientY - r.top - offsetY) / scale }; }
@@ -117,7 +155,10 @@ window.orbitBack = () => {
   if (phase === 'home') return false;
   if (phase === 'pause') resume();
   else if (phase === 'settings' && settingsOrigin === 'pause') { phase = previous; pause(); }
-  else if (['help', 'hangar', 'settings', 'result'].includes(phase)) home();
+  else if (phase === 'shop') interior(activeRoomId);
+  else if (phase === 'interior') hangar();
+  else if (phase === 'supportInfo') support();
+  else if (['help', 'hangar', 'settings', 'result', 'donate'].includes(phase)) home();
   else pause();
   return true;
 };

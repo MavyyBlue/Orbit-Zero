@@ -1,5 +1,15 @@
 # Changelog
 
+## Lyra UI and cosmetic rooms — pending owner import
+
+Replaced the menu presentation with Lyra's optimized art. Added five layered
+ship interiors with wall tint, an 11-item stardust decor shop, additive save
+fields for owned/placed decor, and a support page featuring Lyra/Yuki art.
+The support button is disabled without a payment link. Original texture atlases
+and high-resolution images remain outside the APK; 121 optimized WebP assets
+ship instead. Flight physics and old progress remain compatible. Local
+validation passed; exact-SHA CI and phone acceptance are pending.
+
 ## Stronger orbits and feedback — pending owner import
 
 Strengthened near and distant planetary pull using the same authoritative

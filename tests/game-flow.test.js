@@ -6,6 +6,7 @@ import { encounter, createFlight, advance, dailySeed } from '../web/simulation.j
 
 test('complete UI voyage, pause, retry, save restoration data and cosmetic/settings menus', async () => {
   const elements = new Map(), listeners = {}, storage = new Map(); let frame;
+  storage.set('orbit-zero.save.v1', JSON.stringify({ version: 1, shards: 900, owned: ['ion', 'ember'], skin: 'ion' }));
   const context = new Proxy({}, { get: (_, k) => k === 'createRadialGradient' ? () => ({ addColorStop() {} }) : () => {}, set: () => true });
   function parse(html) { for (const match of html.matchAll(/<[^>]*\bid="([^"]+)"[^>]*>/g)) { const id = match[1]; if (!elements.has(id)) elements.set(id, new Element(id)); const e = elements.get(id); e.hidden = /\bhidden\b/.test(match[0]); const value = match[0].match(/value="([^"]*)"/); if (value) e.value = value[1]; } }
   class Element {
@@ -26,8 +27,24 @@ test('complete UI voyage, pause, retry, save restoration data and cosmetic/setti
   const el = id => elements.get(id), click = id => { assert.equal(typeof el(id)?.onclick, 'function', id); el(id).onclick(); };
   await import('../web/game.js');
   assert.equal(el('home').hidden, false);
+  click('donate'); assert.match(el('panelBody').innerHTML, /Donations opening later/);
+  assert.match(el('panelBody').innerHTML, /lyra_yuki_wave.webp/);
+  click('supportAbout'); assert.match(el('panelBody').innerHTML, /AI tools assisted/);
+  assert.doesNotMatch(el('panelBody').innerHTML, /Akari|Mio|https?:\/\//);
+  click('infoHome');
+  click('hangar'); assert.equal((el('panelBody').innerHTML.match(/class="ship-card"/g) || []).length, 5);
+  click('interior-ion'); assert.match(el('panelBody').innerHTML, /interior-stage/);
+  assert.equal((el('panelBody').innerHTML.match(/class="room-furn/g) || []).length, 4);
+  el('roomColor').value = '#4267af'; el('roomColor').oninput();
+  click('roomShop'); click('decor-orb_cushion');
+  assert.equal(JSON.parse(storage.get('orbit-zero.save.v1')).shards, 700);
+  assert.equal(JSON.parse(storage.get('orbit-zero.save.v1')).rooms.ion.slots.seat, 'orb_cushion');
+  click('shopBack'); assert.match(el('panelBody').innerHTML, /orb_cushion.webp/);
+  click('roomBack'); click('hangarBack');
   click('help'); assert.match(el('panelBody').innerHTML, /exact same physics/); click('helpBack');
-  click('settings'); click('set-sound'); click('set-music'); click('set-haptics'); click('settingsBack');
+  click('settings'); click('set-sound'); click('set-music'); click('set-haptics'); click('set-reduced'); click('settingsBack');
+  click('donate'); assert.match(el('panelBody').innerHTML, /donate_hero.webp/); click('supportBack');
+  click('settings'); click('set-reduced'); click('settingsBack');
   click('play'); assert.equal(el('aimControls').hidden, false);
   click('pause'); click('pauseSettings'); click('settingsBack'); click('resume');
   click('aimToggle');

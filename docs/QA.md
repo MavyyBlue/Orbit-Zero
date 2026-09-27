@@ -18,13 +18,16 @@ physical-phone playtest or a store-ready release.
   sampled Voyage worlds, plus planet-count sampling of 30 Endless sectors.
 - Gravity-strength checks at near/mid/far distances and exit radius; DOM crash
   flow verifies the result waits for the impact beat and five hangar icons appear.
+- Art path/budget checks, old-save decor migration, one-time purchase and equip
+  rules, per-ship tint, an interior/shop/support DOM journey and no payment URL.
 - Save corruption, version mismatch, sanitization, persistence failures and purchases.
 - A lightweight DOM contract test completes a 12-sector voyage and exercises pause,
   settings, retry, achievements, pointer cancellation and background pause.
 - ZIP validation, repeat import, workflow preservation, ownership conflicts, hash
   mismatch, symlink/traversal/workflow/Git path rejection.
 - Real-browser smoke at 360×640 and 412×915 is authored for CI; screenshots are
-  artifacts. This is distinct from the DOM contract test.
+  artifacts, including home, support, interior and shop. This is distinct from
+  the DOM contract test.
 
 ## Required phone acceptance
 
@@ -41,6 +44,14 @@ physical-phone playtest or a store-ready release.
 9. Test low-end performance/heat, tall/short screens, system insets and Android Back.
 10. Judge actual v0.0.2 feel parity. Automated tests cannot certify “one more launch.”
 11. Inspect five hangar icon shapes against the in-field ship, including locked styles.
+12. Open every home/menu/hangar/settings/help control at 360px width; verify
+    readable art, scroll access, text contrast and working Android Back.
+13. Open each owned ship's interior. Tint its wall, place and re-place decor,
+    then force-stop/reopen to verify the save without losing previous progress.
+14. Check shop prices, one-time charges and insufficient-balance disabled states.
+    No decor may alter the flight simulation.
+15. Open Support. The waving art should play unless Reduced Motion is enabled;
+    the donation control must remain disabled with no external checkout.
 
 Known outstanding work for this revision: independent audit, exact-SHA CI run,
 phone/performance/device certification, store/release preparation. Read CURRENT_STATE

@@ -20,6 +20,10 @@ At the repository ROOT on `main`, choose Add file → Upload files. Select
 or place it in a folder. The archive has flat-root source and an integrity manifest;
 it intentionally contains no `.github` files.
 
+For the Lyra UI update, upload only the **optimized source ZIP** delivered with
+the handoff. The separate 120 MB original art archive and donation reference ZIP
+are preserved source material, not files for the repository root or APK.
+
 ## 3. Get the APK
 
 Open Actions → **Orbit Zero - Import, Test and APK** → latest run. The source job

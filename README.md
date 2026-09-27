@@ -25,8 +25,17 @@ a brief spark and tiny mushroom cloud play before the result screen.
 - **Daily orbit:** repeatable offline UTC-date seed, twelve sectors, local best.
 - **Hangar:** five small ship silhouettes with previews beside each name, unlocked with collected stars
   (banked as stardust after a run); four achievement badges.
+- **Ship interiors:** five layered cosmetic rooms with personal wall color and
+  stardust decor. Furnishings do not affect flight.
+- **Support page:** Lyra and Yuki art, creator information, and a disabled
+  donation control. No payment link or transaction is available yet.
 - Sound, ambient music, haptics, reduced motion, high contrast, button/keyboard aiming.
 - Local progress persists; an in-progress flight does not survive process death.
+
+Lyra's visual collection supplies the new home/menu/hangar/settings/interior/shop
+art. The shipped WebP images total about 5.1 MiB; the high-resolution originals
+and 30 texture atlases stay outside the APK. Text and controls remain accessible
+HTML. See [art source and optimization](docs/ART_SOURCE.md).
 
 ## Mobile installation
 

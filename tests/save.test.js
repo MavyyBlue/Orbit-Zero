@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { freshSave, parseSave, loadSave, writeSave, buySkin, SKINS } from '../web/save.js';
+import { freshSave, parseSave, loadSave, writeSave, buySkin, buyDecor, equipDecor, roomFor, setRoomColor, SKINS } from '../web/save.js';
 test('missing, corrupt and future saves fall back without throwing', () => {
   for (const raw of [null, '', '{broken', '{}', '{"version":99}', 'null']) assert.deepEqual(parseSave(raw), freshSave());
 });
@@ -28,4 +28,24 @@ test('old unlocks survive and new silhouettes have distinct styles', () => {
   assert.equal(new Set(SKINS.map(s => s.shape)).size, SKINS.length);
   migrated.shards = 180; assert.equal(buySkin(migrated, 'orbit'), true);
   assert.equal(parseSave(JSON.stringify(migrated)).skin, 'orbit');
+});
+test('decor unlocks once, remains cosmetic, and old saves gain safe rooms', () => {
+  const old = JSON.stringify({ version: 1, shards: 400, owned: ['ion', 'ember'], skin: 'ember' });
+  const s = parseSave(old);
+  assert.deepEqual(s.decorOwned, []); assert.deepEqual(s.rooms, {});
+  assert.equal(buyDecor(s, 'flare', 'orb_cushion'), false, 'locked ship has no room');
+  assert.equal(buyDecor(s, 'ion', 'hammock'), false, 'insufficient stardust');
+  assert.equal(buyDecor(s, 'ion', 'orb_cushion'), true); assert.equal(s.shards, 200);
+  assert.equal(buyDecor(s, 'ember', 'orb_cushion'), true); assert.equal(s.shards, 200, 'owned decor is not charged twice');
+  assert.equal(roomFor(s, 'ember').slots.seat, 'orb_cushion');
+  assert.equal(equipDecor(s, 'ion', 'unowned'), false);
+  assert.equal(setRoomColor(s, 'ion', '#4267af'), true);
+  assert.equal(setRoomColor(s, 'ion', 'url(evil)'), false);
+  const restored = parseSave(JSON.stringify(s));
+  assert.deepEqual(restored.decorOwned, ['orb_cushion']);
+  assert.equal(restored.rooms.ion.color, '#4267af');
+  assert.equal(restored.rooms.ember.slots.seat, 'orb_cushion');
+  s.rooms.ion.slots.console = 'orb_cushion'; s.rooms.ion.color = 'red';
+  assert.equal(parseSave(JSON.stringify(s)).rooms.ion.slots.console, undefined);
+  assert.equal(parseSave(JSON.stringify(s)).rooms.ion.color, SKINS[0].color);
 });

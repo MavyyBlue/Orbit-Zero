@@ -12,8 +12,8 @@ architecture/game-direction authority. Yuki may revise it after reviewing eviden
 | Encounters | Seeded `encounter` in the simulation module; three to five varied gravity sources, a route search placing obscured stars and gate |
 | Run transitions, scoring aggregation, input | `web/game.js`; aim/flight/transit/pause/result states |
 | Rendering | Canvas draw functions in `game.js`; never advance physics |
-| Menus/accessibility controls | Semantic HTML controls and `style.css` |
-| Progress, cosmetics, settings | `web/save.js`; versioned/sanitized local storage |
+| Menus/accessibility controls | Semantic HTML controls in `web/game.js`, art markup in `web/ui-art.js`, CSS in `style.css` |
+| Progress, cosmetics, settings | `web/save.js` plus `web/decor.js`; versioned/sanitized local storage |
 | Audio | `web/audio.js`; original Web Audio notes/cues, no media downloads |
 | Android | Java Activity, local HTTPS asset origin, bounded haptic bridge |
 | Import/build | Owner-created bootstrap workflow; ZIP cannot modify workflows |
@@ -51,12 +51,25 @@ portable and can later be hosted in WKWebView or moved to another renderer.
 Gameplay state is intentionally compact in one orchestrator. Extract run-state
 and rendering modules if future work warrants it; do not invent empty systems.
 
+The art is an independent presentation layer: 121 screen-sized WebP images
+derived from Lyra's supplied originals, including five sets of 11 interior
+layers. `room-layouts.js` contains normalized positions from the supplied specs.
+The room view composes wall/ceiling tint, floor, window, decals, furnishings
+and lighting in HTML/CSS. Shop equipment changes only saved cosmetic IDs and
+does not enter `simulation.js`. The home/menu uses art backgrounds with real
+HTML text and buttons. Source atlases are not loaded in the WebView.
+
 ## Save authority and limitations
 
-Schema 1 saves total best, run/gate/near-miss counts, wins, cosmetic ownership,
-stardust, settings, and up to 32 daily scores. Rewards are banked at run end.
+Schema 1 saves total best, run/gate/near-miss counts, wins, ship and decor
+ownership, stardust, per-ship room tint/equipped slots, settings, and up to 32
+daily scores. The new fields are additive and old saves default safely.
+Rewards are banked at run end.
 Process death abandons the current run. Android app backup is disabled. Corrupt
 saves recover to defaults; storage failures display a warning. No cloud save.
+
+The support page contains no URL, payment SDK, purchase API or transaction. Its
+button is disabled until Mavyy chooses a platform and authorizes a later slice.
 
 ## References checked during implementation
 

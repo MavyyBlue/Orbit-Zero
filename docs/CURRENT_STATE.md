@@ -1,26 +1,26 @@
 # Current state — 2026-09-26
 
-- Repository: `MavyyBlue/Orbit-Zero`; branch: `main`.
-- Inspected live HEAD: `2e88b300e9ed6e6edb64d60229de7ebdb45b006a`.
-- GitHub Actions run #6 (`36266272282`) succeeded: source and validate jobs on the imported previous package, including browser smoke and Android build/lint. The APK artifact belongs to that earlier commit.
-- This document is part of a **new source-ZIP revision pending owner upload**. Its eventual imported Git SHA is unknown until upload; exact-SHA CI and phone validation have not run for it.
-- The playable game is an implementation candidate. Yuki remains architecture/game-direction authority, Akari normal implementation owner, Mio independent QA, and Mavyy final product authority.
+- Repository: `MavyyBlue/Orbit-Zero`, branch `main`.
+- Live HEAD inspected before this source revision: `bb4c3daff88308182b77a1aab67d193051286185`.
+- GitHub Actions run #7 (`36278746288`) succeeded with source and validate jobs for that **previous** candidate.
+- This art/UI source ZIP awaits owner upload; its imported Git SHA and exact-SHA CI are unknown. No APK from this revision has been built or played on a phone yet.
+- Mavyy is final product authority. Yuki directs architecture, Akari normal implementation, Mio independent QA. This one-shot UI implementation is a candidate for their review, not their certification.
 
-## This candidate contains
+## Implemented in this source revision
 
-Offline single-player Canvas/JS gravity flight with shared authoritative prediction; Android Java host; twelve-sector Voyage/Daily and Endless; three to five seeded planets per sector with varied visuals and three gravity-routed collectible stars; near-miss scoring; five cosmetic ship shapes purchased with earned stardust; local saves/settings; synthesized sound, music and bounded haptics. This revision strengthens gravity near and farther from planets, broadens its visual rings, enlarges the exit radius from 22 to 27 units, delays the result while a small collision spark/mushroom cloud plays, and shows actual ship silhouettes in the hangar. Save schema and signing identity are unchanged. No code or gameplay from other projects was imported.
+Offline Android-first single-player gravity flight, shared authoritative preview/live physics, Voyage/Endless/Daily, three to five planets, route-placed stars and exit, near-miss scoring and instant retry remain intact. Lyra's art now backs the home, menus, hangar, settings, help, five layered ship interiors and stardust decor shop. Five ship and 11 decor items are cosmetic. Per-ship wall color and furniture slots persist in additive version-1 save fields, preserving existing save IDs and progress. A support page displays Lyra/Yuki art and credits Mavyy, Yuki and Lyra; its donation control is disabled and contains no URL/payment flow. Akari and Mio are absent from in-game copy as requested for this pass.
 
-## Validation here
+The high-resolution source pack and 30 atlases are not shipped. The app includes 121 optimized WebP images totaling about 5.1 MiB and a repeatable art-preparation script. See `ART_SOURCE.md`.
 
-- JavaScript syntax and 17 Node tests passed: full twelve-sector UI journey, 48 sampled gravity routes, 30 Endless sector samples, 144 preview/live equivalence cases, hangar icons, delayed crash result, gravity strength and gate radius, save compatibility.
-- Five Python importer tests passed. An additional 240 seeded sectors solved with all three stars; no route fallback observed in that sample.
-- The package manifest, archive checksum, clean import over current HEAD and workflow preservation are checked when packaging.
-- Run #6 validates the *previous* imported state, not these changes.
+## Validation performed locally
 
-## Open validation and limits
+- JavaScript syntax and 19 Node tests passed: full 12-sector UI journey, preview/live equivalence, 48 generated gravity routes, 30 Endless samples, save migration/sanitization, shop ownership/equip, and asset references/size.
+- Five Python importer tests passed before packaging; archive manifest, clean baseline import and workflow preservation are verified at packaging.
+- Lyra's original archives passed CRC checks; all 147 source PNGs decoded. Sample art was visually inspected. The technical WebP hero cutout and home background were viewed.
+- Browser screenshots and Android build/lint are authored in the existing workflow but **have not run for this new candidate**. Local Chromium is unavailable.
 
-New ZIP upload and exact imported-SHA GitHub CI are required before an APK from this revision exists. Physical-phone gravity feel, exit generosity, collision animation, hangar readability, low-end device performance, audio/haptics, update installation and independent Mio audit remain pending. Generated routes have a known tested solution for sampled worlds; unique solutions, uniform difficulty and mandatory star collection are not proven. There is no hard boundary to gravity; the broad rings are a visual cue and pull decays with distance. Runs do not checkpoint through process death. Daily scores are local UTC. iOS host, release signing and store work remain open; monetization undecided.
+## Limitations and next bounded task
 
-## Next bounded task
+Phone readability, scroll access, interior composition, 120-frame support animation memory, save upgrade installation, APK size and performance remain unverified. The decorative room can be viewed from the hangar; decor is purchased with earned stardust and affects only presentation. The donation button does not accept money. No iOS host, release signing or store-policy/payment decision exists.
 
-Mavyy uploads this archive as `orbit-zero-source.zip` at repository root, replacing the prior archive. Verify both jobs of its bootstrap run and record the actual imported SHA and APK artifact. Then Yuki leads a phone-feel review of gravity reach/strength, exit width, collision timing and five hangar icons; Akari addresses one bounded correction and Mio independently audits that exact candidate. Preserve app data and the public development signing key when updating the debug APK.
+Mavyy uploads the delivered archive as `orbit-zero-source.zip` at repository root. Inspect both bootstrap jobs, the exact imported SHA, browser screenshots and APK artifact. Then Yuki and Mavyy test home/hangar/room/shop/support screens and the unchanged core loop on a phone. Mio independently audits assets, save compatibility and CI; Akari receives any bounded correction. The payment destination is a separate later slice.

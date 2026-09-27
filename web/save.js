@@ -1,5 +1,6 @@
+import { DECOR } from './decor.js';
 export const SAVE_KEY = 'orbit-zero.save.v1';
-export const freshSave = () => ({ version: 1, best: 0, runs: 0, gates: 0, near: 0, shards: 0, victories: 0, skin: 'ion', owned: ['ion'], daily: {}, settings: { sound: true, music: true, haptics: true, reduced: false, contrast: false } });
+export const freshSave = () => ({ version: 1, best: 0, runs: 0, gates: 0, near: 0, shards: 0, victories: 0, skin: 'ion', owned: ['ion'], decorOwned: [], rooms: {}, daily: {}, settings: { sound: true, music: true, haptics: true, reduced: false, contrast: false } });
 const bounded = v => Number.isSafeInteger(v) && v >= 0 ? Math.min(v, 1000000000) : 0;
 export function parseSave(raw) {
   const s = freshSave();
@@ -9,6 +10,18 @@ export function parseSave(raw) {
     for (const k of ['best', 'runs', 'gates', 'near', 'shards', 'victories']) s[k] = bounded(v[k]);
     s.owned = ['ion', ...SKINS.map(ship => ship.id).filter(k => k !== 'ion' && Array.isArray(v.owned) && v.owned.includes(k))];
     if (s.owned.includes(v.skin)) s.skin = v.skin;
+    s.decorOwned = DECOR.filter(item => Array.isArray(v.decorOwned) && v.decorOwned.includes(item.id)).map(item => item.id);
+    for (const ship of SKINS) {
+      const room = v.rooms?.[ship.id];
+      if (!room || typeof room !== 'object') continue;
+      const color = /^#[0-9a-fA-F]{6}$/.test(room.color) ? room.color : ship.color;
+      const slots = {};
+      for (const slot of ['seat', 'console', 'plant', 'lamp', 'decal']) {
+        const item = DECOR.find(d => d.id === room.slots?.[slot] && d.slot === slot);
+        if (item && s.decorOwned.includes(item.id)) slots[slot] = item.id;
+      }
+      s.rooms[ship.id] = { color, slots };
+    }
     for (const k of Object.keys(s.settings)) if (typeof v.settings?.[k] === 'boolean') s.settings[k] = v.settings[k];
     if (v.daily && typeof v.daily === 'object') for (const [k, val] of Object.entries(v.daily).slice(-32)) if (/^\d{4}-\d{2}-\d{2}$/.test(k)) s.daily[k] = bounded(val);
   } catch { /* Corrupt or missing saves fall back to defaults. */ }
@@ -39,4 +52,27 @@ export function buySkin(save, id) {
     save.shards -= skin.price; save.owned.push(id);
   }
   save.skin = id; return true;
+}
+export function roomFor(save, shipId) {
+  const ship = SKINS.find(s => s.id === shipId) || SKINS[0];
+  save.rooms ||= {};
+  return save.rooms[ship.id] ||= { color: ship.color, slots: {} };
+}
+export function setRoomColor(save, shipId, color) {
+  if (!save.owned.includes(shipId) || !/^#[0-9a-fA-F]{6}$/.test(color)) return false;
+  roomFor(save, shipId).color = color; return true;
+}
+export function equipDecor(save, shipId, itemId) {
+  const item = DECOR.find(d => d.id === itemId);
+  if (!item || !save.owned.includes(shipId) || !save.decorOwned.includes(itemId)) return false;
+  roomFor(save, shipId).slots[item.slot] = itemId; return true;
+}
+export function buyDecor(save, shipId, itemId) {
+  const item = DECOR.find(d => d.id === itemId);
+  if (!item || !save.owned.includes(shipId)) return false;
+  if (!save.decorOwned.includes(itemId)) {
+    if (save.shards < item.price) return false;
+    save.shards -= item.price; save.decorOwned.push(itemId);
+  }
+  return equipDecor(save, shipId, itemId);
 }
