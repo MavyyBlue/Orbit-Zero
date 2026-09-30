@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-27 — Portrait comparison correction, pending owner import
+
+Compared Mavyy's five phone captures with the supplied UI mockups. Replaced
+inset decorative card/button backgrounds with single full-size surfaces,
+reworked challenge label/progress placement, enlarged settings switches,
+added pastel ship portrait tiles, and switched the support illustration to
+the transparent still cutout. Existing gameplay, progress and payment-free
+support behavior remain unchanged. Exact-SHA CI and phone review pending.
+
 ## 2026-09-27 — UI image and portrait layout correction
 
 - Restored three empty runtime images from Lyra's original archive and added an all-image integrity check.

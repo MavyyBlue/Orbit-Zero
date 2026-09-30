@@ -112,3 +112,40 @@
 #panel .donate-tiers button{width:100%;min-height:56px;border-radius:999px;background:#ffd371;border:3px solid #ffe0a1;color:#18223c;box-shadow:0 4px 12px #f1bb6770;text-align:left;font-size:clamp(17px,5vw,25px);padding:7px 17px;opacity:1}
 #panel .donate-page .donate-note{margin-top:4px;padding:10px;width:100%;border:2px solid #88f2d8;border-radius:16px;background:#14243cda;font-size:11px}
 @media(max-height:720px){#home .brand{padding:0}#home .brand h1{font-size:clamp(52px,14vw,75px);margin:13px 0}#home .home-bottom{gap:7px}#home .record{min-height:44px}#home #play{min-height:58px}#home .split button{min-height:48px}#home .links{margin:2px 0}#home .links button{width:49px;min-width:49px;height:49px}#home .links button .ui-icon{width:37px;height:37px}.settings-page{gap:9px}.settings-page .art-list{gap:7px}#panel .setting-row{min-height:52px}#panel .settings-page .help-card img{height:50px}#panel .settings-page #settingsBack{min-height:51px}}
+
+/* The supplied button/card PNGs have large transparent margins and inner shapes.
+   Rendering them behind HTML controls produced a second, smaller control. */
+button.primary{background:linear-gradient(125deg,#79f2d8,#84f9dc);box-shadow:0 7px 17px #6ff8d22b;color:#10253b}
+#home .record{background:linear-gradient(120deg,#ffe89c,#ffd76b);box-shadow:0 0 20px #ffd77778}
+#home #play{background:linear-gradient(120deg,#7df4d9,#84f9df)}
+#home #play .ui-icon{filter:brightness(.42) saturate(1.2)}
+#home .split button{background:#14233e;border:1px solid #354b6a;box-shadow:none}
+#panel .settings-page #settingsBack{background:linear-gradient(120deg,#7cf2d8,#83f9db);box-shadow:0 8px 15px #72e7ca36}
+#panel .settings-page .help-card{background:#dceafa}
+#panel .setting-row .setting-toggle{display:flex;align-items:center;width:58px;height:34px;border-radius:999px;background:#3b4656;border:2px solid #596477;padding:2px;flex:none;transition:background .15s}
+#panel .setting-row .setting-toggle>span{width:26px;height:26px;border-radius:50%;background:#657182;box-shadow:0 1px 3px #09132465;transition:transform .15s,background .15s}
+#panel .setting-row[aria-pressed=true] .setting-toggle{background:#72e8aa;border-color:#7deec5}
+#panel .setting-row[aria-pressed=true] .setting-toggle>span{background:#fff;transform:translateX(24px)}
+#panel .hangar-heading .currency{background:#243659;color:#94f7d7}
+#panel .ship-card{background:linear-gradient(135deg,#1c3546ee,#17243feb);border-color:#44777c}
+#panel .ship-portrait{padding:6px;background:linear-gradient(145deg,#d9ffc5,#6fe4cf);border:2px solid #b6f8d9;object-fit:contain}
+#panel .ship-card:nth-child(2) .ship-portrait{background:linear-gradient(145deg,#ffd5ad,#ff9385);border-color:#ffc0a1}
+#panel .ship-card:nth-child(3) .ship-portrait{background:linear-gradient(145deg,#eac9f4,#ad8de9);border-color:#d7abed}
+#panel .ship-card:nth-child(4) .ship-portrait{background:linear-gradient(145deg,#fff2b3,#ffd56d);border-color:#ffe9aa}
+#panel .ship-card:nth-child(5) .ship-portrait{background:linear-gradient(145deg,#b3e5ff,#84b6f8);border-color:#b8dfff}
+#panel .ship-actions button:first-child,#panel .ship-actions button:first-child:not(:disabled){background:linear-gradient(115deg,#75f3d5,#8bffe0);box-shadow:0 3px 9px #63f6d44d}
+#panel .ship-actions button.selected:disabled{background:linear-gradient(115deg,#ffe68a,#ffd571);color:#152743;box-shadow:0 2px 13px #ffd56d91}
+#panel .challenge-card{background:linear-gradient(135deg,#1e2b48,#18253f);border-color:#526082;min-height:88px}
+#panel .challenge-card.complete{background:linear-gradient(125deg,#49866c,#559473);border-color:#8cdaa4}
+#panel .challenge-body{min-width:0;flex:1}
+#panel .challenge-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#panel .challenge-heading strong{font-size:clamp(15px,4vw,19px);line-height:1.1}
+#panel .challenge-heading b{font-size:11px;color:#f9e1c7;white-space:nowrap}
+#panel .challenge-card.complete .challenge-heading b{background:#9ef3b5;color:#113d32;border-radius:999px;padding:3px 7px}
+#panel .challenge-body small{color:#d9e6de;margin-top:4px}
+#panel .challenge-progress{margin-top:10px}
+#panel .shop-card{background:#1b2b47;border:1px solid #526280}
+#panel .shop-card button:disabled{background:#26354d;color:#a8b9c9}
+#panel .shop-card button:not(:disabled){background:#6be6c5;color:#12342e}
+#panel .help-card{background:#dceafa}
+#panel .donate-hero img{object-fit:contain;filter:drop-shadow(0 10px 15px #03091a89)}

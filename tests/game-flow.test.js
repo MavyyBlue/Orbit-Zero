@@ -31,7 +31,7 @@ test('complete UI voyage, pause, retry, save restoration data and cosmetic/setti
   assert.equal(el('home').hidden, false);
   click('donate'); assert.match(el('panelBody').innerHTML, /Payments are not available yet/);
   assert.equal((el('panelBody').innerHTML.match(/<button disabled aria-label/g) || []).length, 3);
-  assert.match(el('panelBody').innerHTML, /lyra_yuki_wave.webp/);
+  assert.match(el('panelBody').innerHTML, /donate_hero.webp/);
   click('supportAbout'); assert.match(el('panelBody').innerHTML, /AI tools assisted/);
   assert.doesNotMatch(el('panelBody').innerHTML, /Akari|Mio|https?:\/\//);
   click('infoHome');
