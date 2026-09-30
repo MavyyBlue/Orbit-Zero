@@ -46,7 +46,7 @@
 .currency { display:flex; align-items:center; gap:7px; background:#223854; border:1px solid #5c8092; border-radius:999px; padding:9px 12px; color:#a4f5d8; font-size:18px; }
 .currency .ui-icon { width:18px; height:18px; }
 .fleet-note { color:#a9bcd6; font-size:11px; line-height:1.5; margin:0 0 19px; }
-.fleet,.shop-list { display:grid; gap:12px; }
+.fleet { display:grid; gap:12px; }
 .ship-card { position:relative; display:grid; grid-template-columns:64px 1fr; align-items:center; gap:10px 12px; padding:14px; border:1px solid #485778; border-radius:22px; background:linear-gradient(140deg,#243453e8,#18243feb); box-shadow:0 6px 18px #0002; }
 .ship-card.equipped { border-color:#ad9966; background:linear-gradient(130deg,#3b394b,#222941); }
 .ship-portrait { width:64px; height:64px; border-radius:19px; object-fit:contain; padding:5px; background:radial-gradient(circle at 30% 20%,#b5ffdf,#52959d); border:1px solid #caffdd88; }
@@ -62,8 +62,6 @@
 .ship-actions button.selected { background:#f1d293; border-color:#ffe4ac; color:#4b3923; opacity:1; }
 .ship-actions button.locked { background:#b09be9; border-color:#cebafc; color:#231d43; }
 .ship-actions button:disabled:not(.selected) { background:#343d56; color:#b1bed2; border-color:#55627d; }
-.ship-actions .interior-link { flex:.75; background:#25354e; color:#c1e5e3; border-color:#4d6980; }
-.decor-link { width:100%; display:flex; align-items:center; justify-content:center; gap:9px; margin-top:15px; color:#c4b6fb; border-color:#776998; background:#27253f; }
 .hangar-page h3 { margin:28px 0 14px; font-size:21px; }
 .challenge-list { display:grid; gap:12px; }
 .challenge-card { display:flex; align-items:center; gap:12px; min-height:105px; padding:14px; border:1px solid #445472; border-radius:21px; background:#1a2844; }
@@ -97,15 +95,6 @@
 .help-card img { max-width:100%; width:150px; height:95px; object-fit:contain; }
 .help-card p { color:#d4e1ee; font-size:12px; line-height:1.6; margin:0; }
 .settings-page #settingsBack { margin:0 0 5px; }
-.shop-tabs { display:flex; gap:7px; overflow:auto; margin:20px 0; padding-bottom:7px; }
-.shop-tabs button { min-height:44px; padding:9px 13px; flex:none; border-radius:99px; font-size:11px; }
-.shop-tabs button[aria-pressed=true] { background:#bba7f2; color:#231d43; border-color:#ddc9ff; }
-.shop-card { display:grid; grid-template-columns:64px 1fr; gap:12px; align-items:center; padding:14px; border:1px solid #4a5575; border-radius:21px; background:#1d2945; }
-.shop-card>img { width:64px; height:64px; object-fit:contain; background:#344663; border-radius:15px; padding:5px; }
-.shop-card strong { display:block; font-size:17px; }
-.shop-card small { display:block; font-size:11px; color:#b6c6db; margin-top:5px; }
-.shop-card button { grid-column:1/-1; min-height:44px; color:#211b42; background:#baa5f4; font-size:12px; }
-.shop-card button:disabled { color:#b5c5d9; background:#343f58; border-color:#52627d; }
 .statgrid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:25px 0; }
 .statgrid>div { padding:18px; background:linear-gradient(135deg,#263755,#1a2943); border:1px solid #536583; border-radius:21px; }
 .statgrid strong { display:block; color:#a8f5db; font-size:26px; font-variant-numeric:tabular-nums; }
@@ -123,30 +112,6 @@
 .donate-tiers button small { margin-left:auto; font-size:8px; color:#c6b694; letter-spacing:.8px; }
 .donate-page .donate-note { border:1px solid #567281; border-radius:18px; background:#172a3e; padding:15px; font-size:11px; }
 .donate-status { font-size:9px; letter-spacing:2px; color:#c9b78e; border:1px solid #675c49; padding:6px 11px; border-radius:99px; }
-/* Full-screen cosmetic interiors retain the authored art layers. */
-#panel[data-view=interior] #panelBody { padding:0; overflow:hidden; }
-.interior-page { position:relative; width:100%; height:100%; background:#1d2444; }
-.interior-page .interior-stage { position:absolute; inset:0; width:100%; height:100%; max-height:none; aspect-ratio:auto; border:0; border-radius:0; background:#75c4b7; box-shadow:none; }
-.interior-page .room-tint.wall { inset:8% 0 26%; }
-.interior-page .room-tint.ceiling { height:24%; }
-.interior-page .room-window { z-index:2; border:9px solid #283355; box-shadow:0 0 0 6px #2d3659; }
-.interior-page .room-floor { width:100%; height:34%; }
-.interior-page .room-decals { z-index:1; width:100%; height:53%; top:25%; opacity:.45; }
-.interior-page .room-furn { z-index:3; }
-.interior-page .room-furn.seat { width:52%; max-height:38%; }
-.interior-page .room-furn.console { width:50%; max-height:34%; }
-.interior-page .room-furn.plant { width:21%; }
-.interior-page .room-furn.lamp { width:24%; }
-.interior-page .room-lighting { opacity:.16; }
-.interior-bar { position:absolute; z-index:8; top:0; width:100%; min-height:94px; padding:max(15px,env(safe-area-inset-top)) 5% 14px; display:flex; align-items:center; gap:9px; background:#15223df0; border-bottom:1px solid #90bba1; border-radius:0 0 26px 26px; box-shadow:0 8px 20px #0b16345e; }
-.interior-bar>div { text-align:center; flex:1; min-width:0; }
-.interior-bar small { display:block; color:#9bf2d7; font-size:10px; }
-.interior-bar strong { display:block; font-size:28px; line-height:1.15; }
-.interior-bar button,.color-action { width:44px; height:44px; min-height:44px; padding:10px; border:1px solid #9cd5c7; border-radius:14px; display:grid; place-items:center; background:#283e54; color:#b7ffdc; flex:none; }
-.interior-bar .ui-icon { width:23px; height:23px; }
-.color-action { position:relative; overflow:hidden; }
-.color-action input { position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer; }
-.interior-hint { position:absolute; z-index:8; bottom:max(22px,env(safe-area-inset-bottom)); left:8%; right:8%; border:1px solid #91d7c5; border-radius:18px; background:#142443eb; color:#c4f8e5; padding:13px; text-align:center; font-size:12px; font-weight:700; }
 .contrast { --muted:#eef6ff; }
 .contrast p,.contrast small,.contrast .hero-caption,.contrast .dock-label,.contrast .fleet-note { color:#ecf5ff!important; }
 .contrast #play small { color:#123834!important; }

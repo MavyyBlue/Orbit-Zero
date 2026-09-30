@@ -9,6 +9,35 @@ Repository contents, exact candidate SHA, test logs and CI evidence outrank chat
 memory. A workflow file existing is not a passing run. A passing run is not a
 physical-phone playtest or a store-ready release.
 
+## Active scope update: interiors retired
+
+Station Foundation now has four additional Node cases for save migration/bounds
+and gesture arbitration. `station-smoke.mjs` is part of the browser entrypoint:
+it exercises real touch pan/pinch/cancel, model taps, future-building panels,
+camera reload, menu-origin returns, station launches and immediate retry,
+resource disposal, context loss/recovery, late-load races and unavailable WebGL.
+The browser suite uses SwiftShader where needed; it is not target-device GPU
+performance evidence. The candidate passed 56 Node cases, five importer cases
+and Chromium journeys at 320×568, 360×640 and 412×915.
+
+Required station phone review: update-install without uninstalling; enter from
+the main menu; drag/pinch with real fingers, cancel/background mid-gesture, tap
+all four plots, and use accessible buttons/reset/zoom controls. Check small-screen
+readability, camera limits/framing after force-stop, Hangar/settings/Workshop Back,
+both run modes, direct retry and unchanged preview/planet/dead-zone feel. Check
+renderer loss recovery, heat/frame pacing on a low-end WebView, reduced motion,
+and memory/startup across repeated hub → run → hub transitions. Building production,
+upgrades and technicians must remain unavailable in Foundation.
+
+Ship interiors and the decorating shop are no longer active features. Older
+interior acceptance lists below are historical. The active browser suite checks
+that Hangar has no Interior/Decor shop entries, then exercises normal menu,
+flight, Workshop, planet and aim flows. The normal-run DOM journey now verifies
+ship selection/unlocks and retention of legacy room documents/cosmetic ownership
+across save writes. Retained room-model/input tests concern archived code and
+compatibility, not certification of a current decorating interface. Future 3D
+station acceptance follows STATION_PLAN.md.
+
 ## Automated coverage
 
 - 144 preview/live equivalence cases with every visible point compared.

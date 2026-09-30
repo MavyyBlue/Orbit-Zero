@@ -16,10 +16,27 @@ The owner expanded the initial bootstrap into one full playable-game attempt.
 | 8 | Performance/device certification | Pending |
 | 9 | Store preparation, monetization decision, launch candidate | Donation page shell only; platform/link and policy decision pending |
 
-**Next task:** Upload the bundled interior ZIP through the unchanged bootstrap,
-verify its new imported SHA and CI/browser/Android checks, then phone-test all
-five rooms, decorating, purchases and update-install persistence. Local browser
-execution is blocked by the sandbox; no candidate browser pass is claimed.
-Preserve accepted physics/dead-zone feel, progress and Workshop levels.
-Independent QA and broader device certification remain open. Donation checkout
-remains a separate later decision.
+**Next task:** Validate the Station Foundation candidate on the target Android
+WebView/device and through exact-candidate CI. Next development phase is Hangar:
+active 3D ship display and failure-safe ship transactions using existing IDs/prices.
+The old interior ZIP is superseded. Preserve accepted physics/dead-zone feel,
+progress and Workshop levels. Donation checkout remains a separate later decision.
+
+## Long-term direction: the orbital station
+
+The owner's new direction is a persistent interactive 3D station: a miniature
+orbital home where run-earned Stardust visibly improves ships and structures.
+It reinforces the gravity-arcade loop and preserves immediate retry, Workshop,
+accepted aiming/planet mechanics, shared trajectory authority, and existing saves.
+Station Foundation is now implemented locally as a candidate. Later production
+and progression features remain planned; release/device checks remain open.
+
+Development order: source/rendering feasibility → Station Foundation → Hangar
+integration → Economy / Stardust Harvester → Engineering Bay → Astronaut Station
+→ Martian Garden → Visual-Life Pass. Ship interiors and decorating are retired. Start with four fixed primary structures;
+introduce Garden and further structures through a modular catalog later.
+
+See [station architecture and phase gates](STATION_PLAN.md) for the inspected
+source integration map, offline 3D constraints, persistence/economy safeguards,
+and concrete Foundation scope. Each increment needs its own regression evidence
+and applicable physical-phone acceptance before it is called accepted.

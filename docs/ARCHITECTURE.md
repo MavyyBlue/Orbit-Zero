@@ -1,8 +1,30 @@
 # Architecture — 0.1.0 candidate
 
+Future station direction is documented in [STATION_PLAN.md](STATION_PLAN.md).
+That plan maps this source to a separate offline 3D hub and additive progression;
+it does not change the implemented authorities described below.
+
 The expanded owner request authorized a full playable implementation. Astra chose
 this small stack to make that pass deliverable, not to replace Yuki as permanent
 architecture/game-direction authority. Yuki may revise it after reviewing evidence.
+
+## Station Foundation boundary
+
+`station-ui.js` hosts a generation-guarded lazy import of `station-view.js`,
+which owns a separate WebGL canvas, orthographic diorama, scene resources and
+30 Hz decorative animation. `station-input.js` arbitrates taps/drags/pinches;
+it never shares the accepted flight gesture filter. `station-catalog.js` holds
+four fixed plot/feature definitions. `station-model.js` normalizes a nested
+version-1 cosmetic camera in the existing save; no economy or modifiers exist.
+The offline Three.js r170 module and MIT license are vendored under `web/vendor`.
+
+`game.js` adds the station phase and origin-aware Hangar/settings/Workshop/result
+returns. Station launch and retry use the existing run lifecycle. Flight Canvas
+rendering stops in station views; scene destruction releases GPU resources and
+listeners before gameplay. Reduced motion, visibility cancellation, load races,
+WebGL context recovery and failure fallback stay inside the presentation layer.
+The core simulation, planet rules, accepted aiming and Workshop model remain
+unchanged. See STATION_PLAN.md for candidate scope and device acceptance limits.
 
 ## Implemented boundaries
 
@@ -51,24 +73,18 @@ portable and can later be hosted in WKWebView or moved to another renderer.
 Gameplay state is intentionally compact in one orchestrator. Extract run-state
 and rendering modules if future work warrants it; do not invent empty systems.
 
-The art is an independent presentation layer: the existing 121 optimized WebP
-images and five sets of interior layers remain. `room-layouts.js` retains the
-original asset/default catalog; `room-model.js` owns expanded room designs,
-cosmetic inventory metadata, footprints, window clearance, mount rules and safe
-migration. `room-editor.js` renders/edits documents with a bounded dock and its
-own pointer owner. Validation is shared by drag, tap/keyboard movement, previews
-and save sanitization. `room-editor.css` orders floor items by position and keeps
-perspective furniture upright with contained aspect ratios. Decal sheet cells
-are clipped to individual motifs rather than placing a sheet.
+The owner has retired ship interiors and decorating in favor of the 3D station.
+`game.js` no longer imports `RoomEditor` or offers Interior/Decor shop routes;
+`index.html` no longer loads room styles. Hangar retains ship selection/unlocks
+and challenges. `ui-art.js` supplies only active art/icon helpers.
 
-Pending previews are separate from ownership/placement. Confirmation constructs
-a candidate save, applies the existing one-time price and writes the complete
-transaction before updating cosmetic state. Failed writes do not charge or claim
-success. Room-only undo never restores stardust/ownership. Surface/lighting edits
-save on change; drag saves on valid release. Capture loss/background/resize cancel
-unfinished moves. Listeners and observers are removed on exit. Flight orchestration
-only opens/exits this UI; simulation and Workshop never read rooms. No added
-runtime dependency, backend or external request.
+Legacy room/decor models, source assets and archived editor code remain for
+save compatibility and historical reference, not as station feature requirements.
+`save.js` still preserves and normalizes existing room documents and cosmetic
+ownership. The retired editor's candidate-write transaction pattern remains a
+useful reference: clone the current save, validate/debit/grant on the candidate,
+write successfully, then apply state. New station commands should adopt this
+pattern without rebuilding room UI. See `INTERIORS.md` for historical behavior.
 
 ## Save authority and limitations
 

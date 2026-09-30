@@ -24,3 +24,20 @@ Android-first and single-player. Keep future iOS support possible. No multiplaye
 social systems, accounts, backend, analytics, ads, or monetization implementation.
 Monetization remains undecided. Private collaborators and relationships are never
 game content.
+
+## A home between launches
+
+The station gives run accomplishments a physical, persistent purpose:
+Station → prepare/select ship → launch → gravity-arcade run → earn Stardust
+→ return → improve the station/ships → launch again. Keep immediate retry
+available; management is never a required interruption between attempts.
+
+The station is a small, lovable 3D orbital diorama with visible building growth,
+simple progression, and eventually gentle ambient life. Its 3D assets use a
+low-poly arcade style: bold silhouettes, playful proportions, simplified geometry
+and readable color accents at the isometric camera distance. Orbit Zero remains an
+arcade gravity game first. Preserve all feel priorities above; avoid city-builder
+complexity, many currencies, crafting chains, or heavy crew management.
+Ship interiors and cabin decorating are retired. Hangar belongs to the 3D station
+and focuses on the ships themselves: viewing, selection and unlocking.
+See [the phased station plan](STATION_PLAN.md).

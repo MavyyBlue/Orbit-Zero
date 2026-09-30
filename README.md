@@ -34,17 +34,19 @@ a brief spark and tiny mushroom cloud play before the result screen.
   changing normal records or stardust. See [Workshop guide](docs/WORKSHOP.md).
 - **Hangar:** five small ship silhouettes with previews beside each name, unlocked with collected stars
   (banked as stardust after a run); four achievement badges.
-- **Ship interiors:** five expanded cosmetic rooms with a Furniture/Surfaces/Lighting
-  dock, explicit Decorate mode, drag placement and free Owned storage. Preview
-  before confirming purchases; independent finishes, lighting, decals and window
-  views persist per ship. Furnishings do not affect flight. See [interior guide](docs/INTERIORS.md).
+- **3D station foundation:** open **Visit your orbital station** to explore four
+  low-poly buildings with touch drag/pinch, mouse wheel or keyboard controls.
+  Station launches use existing Voyage/Endless runs and return to the hub.
+  Engineering, Harvester and Astronaut systems are future features. Hangar focuses on ship ownership, selection and unlocking. Ship-room
+  interiors and the decorating shop are retired; existing room data and cosmetic
+  ownership remain in saves. See [station plan](docs/STATION_PLAN.md).
 - **Support page:** Lyra and Yuki art, creator information, and a disabled
   donation control. No payment link or transaction is available yet.
 - Sound, ambient music, haptics, reduced motion, high contrast, button/keyboard aiming.
 - Local progress persists; an in-progress flight does not survive process death.
 
-Lyra's visual collection supplies the new home/menu/hangar/settings/interior/shop
-art. The shipped WebP images total about 5.1 MiB; the high-resolution originals
+Lyra's visual collection supplies home/menu/hangar/settings art. Retired room/shop
+art remains archived in source. The shipped WebP images total about 5.1 MiB; the high-resolution originals
 and 30 texture atlases stay outside the APK. Text and controls remain accessible
 HTML. See [art source and optimization](docs/ART_SOURCE.md).
 
@@ -71,7 +73,9 @@ npm run serve
 gradle --no-daemon :app:assembleDebug :app:lintDebug
 ```
 
-No npm runtime dependencies. The Android shell uses AndroidX WebKit 1.12.1.
+No npm install is needed to play or run Node tests. The station bundles the MIT-licensed
+Three.js r170 ES module locally; no CDN or backend is used. The Android shell
+uses AndroidX WebKit 1.12.1.
 The intentionally public debug signing identity preserves test-install updates;
 it must never sign a production release.
 

@@ -1,4 +1,11 @@
-# Ship interiors
+# Retired ship interiors — historical reference
+
+The owner retired this concept in favor of the interactive 3D orbital station.
+The active Hangar has no Interior or Decor shop entry, and the room editor/styles
+are not loaded by the application. The controls below describe the former system,
+not a current feature. Legacy room documents, cosmetic ownership, model validation,
+and source assets are retained for save compatibility; no refund, deletion, or
+conversion into station upgrades is performed. See [STATION_PLAN.md](STATION_PLAN.md).
 
 Interiors are cosmetic, offline and separate from flight and Workshop.
 Open Hangar, then an owned ship's Interior. Each ship saves its own room.

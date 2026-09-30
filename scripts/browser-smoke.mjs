@@ -1,12 +1,12 @@
 // Run after installing pinned Playwright; CI saves real phone-sized screenshots.
 import { chromium } from 'playwright';
-import { roomSmoke } from './room-smoke.mjs';
 import { deadZoneSmoke } from './aim-lock-smoke.mjs';
 import { planetFlightSmoke } from './planet-flight-smoke.mjs';
 import { workshopSmoke } from './workshop-smoke.mjs';
+import { stationSmoke } from './station-smoke.mjs';
 import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
-const browser = await chromium.launch({ headless: true, executablePath: process.env.ORBIT_BROWSER_EXECUTABLE || undefined });
+const browser = await chromium.launch({ headless: true, executablePath: process.env.ORBIT_BROWSER_EXECUTABLE || undefined, args: ['--enable-unsafe-swiftshader'] });
 mkdirSync('build/screenshots', { recursive: true });
 try {
   for (const viewport of [{ width: 320, height: 568 }, { width: 360, height: 640 }, { width: 412, height: 915 }]) {
@@ -44,7 +44,9 @@ try {
     await page.locator('#hangar').click();
     await artLoaded();
     await page.screenshot({ path: `build/screenshots/hangar-${viewport.width}.png` });
-    await roomSmoke(page, viewport);
+    assert.equal(await page.locator('[id^="interior-"]').count(), 0);
+    assert.equal(await page.locator('#shopFromHangar').count(), 0);
+    await page.locator('#hangarBack').click();
     await page.locator('#settings').click();
     await page.locator('#set-sound').click(); await page.locator('#set-music').click(); await page.locator('#set-haptics').click();
     await page.locator('#settingsBack').click(); await page.reload(); await page.locator('#settings').click();
@@ -65,6 +67,7 @@ try {
     await workshopSmoke(page, viewport);
     await planetFlightSmoke(page, viewport);
     await deadZoneSmoke(page, viewport);
+    await stationSmoke(page, viewport);
     await artLoaded();
     assert.deepEqual(errors, [], `Browser errors at ${viewport.width}px`);
     await context.close();

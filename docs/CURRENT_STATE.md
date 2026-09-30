@@ -1,5 +1,46 @@
 # Current state — 2026-09-30
 
+## Station Foundation candidate — local implementation
+
+A separate low-poly Three.js r170 station is now accessible from the existing
+main menu. Four fixed plots support orthographic drag/pinch exploration and
+building taps; accessible buttons and zoom/reset controls are also present.
+Hangar reuses current ship selection/unlocks and challenges. Engineering,
+Harvester and Astronaut Station are future-system panels without transactions.
+Station-launched Voyage/Endless runs return to the hub, with immediate retry
+retained. Workshop and settings preserve their menu origin.
+
+Camera framing is the only new persisted state, nested under schema 1. Old room
+and cosmetic data remain compatible; ship interiors stay retired. The separate
+renderer loads locally on demand, disposes on exit, suspends on background, and
+supports static reduced motion and accessible fallback on WebGL failure.
+Physics, planets, accepted aiming, Workshop model/editor, Android host, signing
+and workflow source are unchanged. The parked ship is a prototype; Phase 2 will
+integrate active-ship visuals and failure-safe ship purchases.
+
+No station production/upgrades/technicians are active. The main menu is retained
+as startup until physical acceptance. Android build/lint, device performance,
+update-install and phone feel are not certified by desktop browser evidence.
+Local checks passed: syntax, 56 Node cases, five importer cases and Chromium
+journeys at 320×568, 360×640 and 412×915, including software WebGL rendering,
+real touch gestures, context recovery and renderer fallback.
+See STATION_PLAN.md for the architecture and later phase gates.
+
+## Current direction update — ship interiors retired
+
+The owner has chosen the interactive 3D orbital station as the home between runs.
+Interior/Decor shop entry points, room-editor runtime integration, and active
+room styles have been removed locally. Hangar retains five ships, selection,
+unlocks and challenges. Saved rooms/cosmetic ownership are preserved for
+compatibility. The Foundation above supersedes the earlier design-only status; see STATION_PLAN.md.
+Local retirement checks passed: syntax, all 52 Node cases, five importer cases,
+and Chromium smoke at 320×568, 360×640 and 412×915.
+The bundled-interior candidate notes below are historical and are superseded
+as development/release instructions. Do not upload the old interior ZIP as the
+next development step. Exact-candidate CI, Android and phone checks remain
+necessary for a later release.
+
+
 Repository: `MavyyBlue/Orbit-Zero`, branch `main`.
 Live HEAD verified before implementation:
 `b5a2139337b0aa0d10de4ca1efc27eea52727410`.

@@ -3,10 +3,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { encounter, createFlight, advance } from '../web/simulation.js';
+import { parseSave } from '../web/save.js';
 
 test('complete UI voyage, pause, retry, save restoration data and cosmetic/settings menus', async () => {
   const elements = new Map(), listeners = {}, storage = new Map(); let frame;
-  storage.set('orbit-zero.save.v1', JSON.stringify({ version: 1, shards: 900, owned: ['ion', 'ember'], skin: 'ion' }));
+  const legacy = { version: 1, shards: 900, owned: ['ion', 'ember'], skin: 'ion', decorOwned: ['orb_cushion'], rooms: { ion: { color: '#4267af', slots: { seat: 'orb_cushion' } } } };
+  const preservedRooms = parseSave(JSON.stringify(legacy)).rooms;
+  storage.set('orbit-zero.save.v1', JSON.stringify(legacy));
   const context = new Proxy({}, { get: (_, k) => k === 'createRadialGradient' ? () => ({ addColorStop() {} }) : () => {}, set: () => true });
   function parse(html) { for (const match of html.matchAll(/<[^>]*\bid="([^"]+)"[^>]*>/g)) { const id = match[1]; if (!elements.has(id)) elements.set(id, new Element(id)); const e = elements.get(id); e.hidden = /\bhidden\b/.test(match[0]); const value = match[0].match(/value="([^"]*)"/); if (value) e.value = value[1]; } }
   class Element {
@@ -37,16 +40,16 @@ test('complete UI voyage, pause, retry, save restoration data and cosmetic/setti
   assert.doesNotMatch(el('panelBody').innerHTML, /Akari|Mio|https?:\/\//);
   click('infoHome');
   click('hangar'); assert.equal((el('panelBody').innerHTML.match(/class="ship-card(?: [^"]*)?"/g) || []).length, 5);
-  click('interior-ion'); assert.match(el('panelBody').innerHTML, /cabin-stage/);
-  assert.equal((el('roomObjects').innerHTML.match(/data-placement=/g) || []).length, 6);
-  click('roomSurfaces'); el('finish-wall').value = '#4267af'; el('finish-wall').onchange();
-  click('roomFurniture'); click('inventoryShop'); click('inventory-orb_cushion');
-  assert.equal(JSON.parse(storage.get('orbit-zero.save.v1')).shards, 900, 'preview does not charge');
-  click('previewConfirm');
-  assert.equal(JSON.parse(storage.get('orbit-zero.save.v1')).shards, 700);
-  assert.equal(JSON.parse(storage.get('orbit-zero.save.v1')).rooms.ion.slots.seat, 'orb_cushion');
-  assert.match(el('roomObjects').innerHTML, /orb_cushion.webp/);
-  click('roomBack'); click('hangarBack');
+  assert.doesNotMatch(el('panelBody').innerHTML, /interior-|shopFromHangar|Decor shop/);
+  click('skin-ember');
+  assert.equal(JSON.parse(storage.get('orbit-zero.save.v1')).skin, 'ember');
+  assert.equal(JSON.parse(storage.get('orbit-zero.save.v1')).shards, 900, 'selecting an owned ship is free');
+  click('skin-violet');
+  assert.equal(JSON.parse(storage.get('orbit-zero.save.v1')).shards, 830, 'ship unlock keeps its existing price');
+  assert.deepEqual(JSON.parse(storage.get('orbit-zero.save.v1')).rooms, preservedRooms, 'retired room documents survive ship selection and purchases');
+  assert.deepEqual(JSON.parse(storage.get('orbit-zero.save.v1')).decorOwned, legacy.decorOwned, 'retired cosmetic ownership is retained');
+  window.orbitBack();
+  assert.equal(el('home').hidden, false, 'Hangar Back returns directly to dock');
   click('help'); assert.match(el('panelBody').innerHTML, /exact same physics/); click('helpBack');
   click('settings'); click('set-sound'); click('set-music'); click('set-haptics'); click('set-reduced'); click('settingsBack');
   click('donate'); assert.match(el('panelBody').innerHTML, /donate_hero.webp/); click('supportBack');
@@ -69,6 +72,8 @@ test('complete UI voyage, pause, retry, save restoration data and cosmetic/setti
   }
   assert.match(el('panelBody').innerHTML, /VOYAGE COMPLETE/);
   const saved = JSON.parse(storage.get('orbit-zero.save.v1'));
+  assert.deepEqual(saved.rooms, preservedRooms, 'normal runs and settings preserve retired room documents');
+  assert.deepEqual(saved.decorOwned, legacy.decorOwned);
   assert.equal(saved.victories, 1); assert.equal(saved.gates, 12); assert.equal(saved.runs, 1); assert.ok(saved.best >= 6000);
   click('retry'); assert.equal(el('panel').hidden, true); click('pause'); click('quit'); click('resultHome');
   click('hangar'); assert.match(el('panelBody').innerHTML, /Zero to infinity/);

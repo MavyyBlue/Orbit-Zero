@@ -1,20 +1,21 @@
 import { W, H, DT, START, GRAVITY_REACH, encounter, launchVector, createFlight, advance, predict, rng } from './simulation.js';
 import { loadSave, writeSave, SKINS, SHIP_OUTLINES, buySkin } from './save.js';
-import { RoomEditor } from './room-editor.js';
 import { art, icon } from './ui-art.js';
 import { PLANETS } from './planet-rules.js';
 import { Workshop } from './workshop-ui.js';
 import { Sound } from './audio.js';
 import { AimDeadZone } from './aim-lock.js';
+import { StationHub } from './station-ui.js';
+import { stationBuilding } from './station-catalog.js';
 const $ = id => document.getElementById(id), canvas = $('space'), ctx = canvas.getContext('2d');
 let storage; try { storage = window.localStorage; } catch { storage = null; }
 const loaded = loadSave(storage), save = loaded.save, sound = new Sound(save.settings);
 let phase = 'home', previous = 'aim', mode = 'voyage', seed = 1, sector = 1, total = 0, shards = 0, nears = 0, gates = 0;
 let world = encounter(1), flight = null, vector = null, drag = null, trail = [], particles = [], preview = null;
 let clock = 0, accumulator = 0, toastUntil = 0, transition = 0, impactAge = 0, width = 400, height = 720, scale = 1, offsetX = 0, offsetY = 0;
-let roomEditor = null;
 let workshop = null, customLevel = null, editorPointer = null, editorClick = null;
-let finished = false, assist = false, bestBefore = 0, settingsOrigin = 'home', activeRoomId = 'ion';
+let finished = false, assist = false, bestBefore = 0, settingsOrigin = 'home';
+let station = null, menuOrigin = 'home', runOrigin = 'home', stationCamera = { ...save.station.camera };
 const starRng = rng(9201), stars = Array.from({ length: 95 }, () => ({ x: starRng() * W, y: starRng() * H, r: starRng() * 1.1 + .25, a: starRng() * .45 + .2 }));
 function persist() { $('saveWarning').hidden = writeSave(storage, save); }
 $('saveWarning').hidden = loaded.available;
@@ -32,20 +33,51 @@ function resize() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 new ResizeObserver(resize).observe(canvas);
-function screens(home = false, panel = false) { $('home').hidden = !home; $('panel').hidden = !panel; $('hud').hidden = home || panel; $('aimControls').hidden = phase !== 'aim'; }
+function screens(home = false, panel = false) {
+  const atStation = phase === 'station';
+  $('home').hidden = !home; $('panel').hidden = !panel; $('station').hidden = !atStation;
+  $('space').hidden = atStation; $('hud').hidden = home || panel || atStation; $('aimControls').hidden = phase !== 'aim';
+  if (!atStation) {
+    station?.close();
+    if (JSON.stringify(stationCamera) !== JSON.stringify(save.station.camera)) { save.station.camera = { ...stationCamera }; persist(); }
+  }
+}
 function toast(text) { $('toast').textContent = text; toastUntil = performance.now() + 1600; }
 function updateHud() { $('sectorLabel').textContent = mode === 'custom' ? 'CUSTOM · SANDBOX' : `SECTOR ${String(sector).padStart(2, '0')} / ${mode === 'endless' ? '∞' : '12'}`; $('score').textContent = (total + (flight?.score || 0)).toLocaleString(); $('combo').textContent = `×${flight?.combo || 1}`; }
 function home() {
-  roomEditor?.destroy(); roomEditor = null;
+  menuOrigin = 'home';
   workshop?.hide(); mode = 'voyage'; $('app').setAttribute('data-custom', 'false');
   phase = 'home'; flight = null; drag = null; preview = null; vector = null; particles = []; trail = [];
   world = encounter(319, 2, 'voyage'); $('notice').textContent = ''; $('toast').textContent = '';
   $('homeBest').textContent = save.best.toLocaleString(); screens(true); resize();
 }
+function openStation() {
+  menuOrigin = 'station'; workshop?.hide(); mode = 'voyage'; $('app').setAttribute('data-custom', 'false');
+  phase = 'station'; flight = null; drag = null; vector = null; preview = null; trail = []; particles = []; accumulator = 0;
+  $('notice').textContent = ''; $('toast').textContent = ''; $('stationBalance').textContent = save.shards.toLocaleString(); screens();
+  station ||= new StationHub($('stationViewport'), {
+    getCamera: () => stationCamera, getReduced: () => save.settings.reduced,
+    onCamera: camera => { stationCamera = camera; }, onBuilding: openStationBuilding,
+    onStatus: status => {
+      $('stationHint').textContent = status === 'loading' ? 'Preparing your orbital home…' : status === 'ready' ? 'Drag to explore · pinch to zoom · tap a building' : '3D view unavailable. Your buildings and launch controls still work.';
+      for (const id of ['stationReset', 'stationZoomIn', 'stationZoomOut']) $(id).disabled = status !== 'ready';
+    }
+  });
+  station.close(); station.open(); $('stationTitle').focus?.({ preventScroll: true });
+}
+function returnToDock() { if (menuOrigin === 'station') openStation(); else home(); }
+function openStationBuilding(id) {
+  if (phase !== 'station') return;
+  const building = stationBuilding(id); if (!building) return;
+  if (building.feature === 'ships') { hangar(); return; }
+  phase = 'stationBuilding';
+  showPanel(`<div class="station-building-panel"><span class="eyebrow">STATION FOUNDATION</span><h2>${building.name}</h2><p>${building.description}</p><p>This building is reserved for a later development phase.</p><button class="primary" id="stationBuildingBack">Back to station</button></div>`, 'stationBuilding');
+  $('stationBuildingBack').onclick = openStation;
+}
 function openWorkshop() {
   phase = 'editor'; mode = 'custom'; flight = null; vector = null; preview = null; drag = null; trail = []; particles = []; editorPointer = null;
   $('app').setAttribute('data-custom', 'true'); $('notice').textContent = ''; $('toast').textContent = ''; screens(); $('hud').hidden = true;
-  workshop ||= new Workshop($('workshopUI'), storage, { onChange: w => { world = w; resize(); }, onResize: resize, onExit: home, onPlay: (w, d) => { world = w; customLevel = d; sound.unlock(); restartCustom(); } });
+  workshop ||= new Workshop($('workshopUI'), storage, { onChange: w => { world = w; resize(); }, onResize: resize, onExit: returnToDock, onPlay: (w, d) => { world = w; customLevel = d; sound.unlock(); restartCustom(); } });
   workshop.open(); resize();
 }
 function restartCustom() {
@@ -56,9 +88,10 @@ function restartCustom() {
 function customFinish(victory, reason) {
   if (finished) return; finished = true; phase = 'result'; $('notice').textContent = ''; $('toast').textContent = '';
   showPanel(`<span class="eyebrow">CUSTOM ORBIT · SANDBOX</span><h2>${victory ? 'Orbit cleared!' : reason}</h2><div class="statgrid"><div><strong>${flight?.score || 0}</strong><small>Custom score</small></div><div><strong>${flight?.collected.length || 0} / ${world.pickups.length}</strong><small>Stars</small></div></div><p>No stardust or normal records change in Workshop. Keep tuning your line.</p><button class="primary" id="customRetry">Retry level ↗</button><button class="back" id="customEdit">Back to editor</button><button class="back" id="customHome">Return to dock</button>`);
-  $('customRetry').onclick = restartCustom; $('customEdit').onclick = openWorkshop; $('customHome').onclick = home;
+  $('customRetry').onclick = restartCustom; $('customEdit').onclick = openWorkshop; $('customHome').onclick = returnToDock;
 }
-function start(which) {
+function start(which, origin = runOrigin) {
+  runOrigin = origin;
   workshop?.hide(); $('angle').min = '-75'; $('angle').max = '75'; $('angle').value = Math.max(-75, Math.min(75, Number($('angle').value))); $('app').setAttribute('data-custom', 'false');
   sound.unlock(); mode = which;
   seed = crypto.getRandomValues(new Uint32Array(1))[0];
@@ -100,7 +133,8 @@ function finish(victory, reason) {
   save.best = Math.max(save.best, score);
   persist(); phase = 'result'; $('notice').textContent = ''; $('toast').textContent = '';
   showPanel(`<span class="eyebrow">${victory ? 'VOYAGE COMPLETE' : score > bestBefore ? 'NEW PERSONAL BEST' : 'EVERY ARC TEACHES YOU'}</span><h2>${victory ? 'You found the line.' : reason}</h2><div class="statgrid"><div><strong>${score.toLocaleString()}</strong><small>Score</small></div><div><strong>${gates}</strong><small>Gates reached</small></div><div><strong>${nears}</strong><small>Near misses</small></div><div><strong>+${shards}</strong><small>Stardust</small></div></div><p>${victory ? 'Twelve sectors crossed. A new orbit is always waiting.' : 'A little more pull. A slightly different angle. One more launch.'}</p><button class="primary" id="retry">Launch again ↗</button><button class="back" id="resultHome">Return to dock</button>`);
-  $('retry').onclick = () => start(mode); $('resultHome').onclick = home;
+  $('retry').onclick = () => start(mode); $('resultHome').textContent = runOrigin === 'station' ? 'Return to station' : 'Return to dock';
+  $('resultHome').onclick = () => { if (runOrigin === 'station') openStation(); else home(); };
 }
 function settings(from = 'home') {
   settingsOrigin = from; phase = 'settings'; $('notice').textContent = ''; $('toast').textContent = '';
@@ -108,7 +142,7 @@ function settings(from = 'home') {
   showPanel(`<div class="settings-page"><div class="settings-heading"><span class="eyebrow">MAKE SPACE YOURS</span><h2>Settings</h2></div><div class="art-list">${Object.entries(labels).map(([k, [label, image]]) => `<button class="setting-row" id="set-${k}" aria-pressed="${save.settings[k]}" aria-label="${label}: ${save.settings[k] ? 'On' : 'Off'}"><span class="setting-icon">${icon(image)}</span><span class="setting-label">${label}</span><span class="setting-toggle" aria-hidden="true"><span></span></span></button>`).join('')}</div><div class="aim-deadzone-setting"><label for="aimDeadZone">Aim dead zone <output id="aimDeadZoneValue">${save.settings.aimDeadZone === 0 ? 'Off' : `${save.settings.aimDeadZone} px`}</output></label><input id="aimDeadZone" type="range" min="0" max="12" step="1" value="${save.settings.aimDeadZone}" aria-describedby="aimDeadZoneHelp"><p id="aimDeadZoneHelp">Ignore small finger movements while aiming. Higher values need more movement to adjust. Set to 0 to turn off.</p></div><div class="help-card"><strong>✧ How to aim</strong><img src="${art('ui/illustrations/illustration_aim')}" alt="A ship and a drag gesture"><p>Drag near the ship, then release to aim</p></div><button class="primary" id="settingsBack">Done</button></div>`, 'settings');
   for (const k of Object.keys(labels)) $(`set-${k}`).onclick = () => { const scroll = $('panelBody').scrollTop; save.settings[k] = !save.settings[k]; persist(); applySettings(); sound.unlock(); settings(from); $('panelBody').scrollTop = scroll; $(`set-${k}`).focus?.({ preventScroll: true }); };
   $('aimDeadZone').oninput = () => { save.settings.aimDeadZone = Number($('aimDeadZone').value); $('aimDeadZoneValue').textContent = save.settings.aimDeadZone === 0 ? 'Off' : `${save.settings.aimDeadZone} px`; $('aimDeadZone').setAttribute('aria-valuetext', $('aimDeadZoneValue').textContent); persist(); };
-  $('settingsBack').onclick = () => { if (from === 'pause') { phase = previous; pause(); } else home(); };
+  $('settingsBack').onclick = () => { if (from === 'pause') { phase = previous; pause(); } else returnToDock(); };
 }
 function shipIcon(style) {
   const points = SHIP_OUTLINES[style.shape].map(([x, y]) => `${x + 16},${y + 17}`).join(' ');
@@ -122,22 +156,11 @@ function hangar() {
     ['Wayfarer', 'Reach 25 gates', save.gates, 25, 'icon_ship'],
     ['Zero to infinity', 'Complete a voyage', save.victories, 1, 'icon_infinity']
   ];
-  showPanel(`<div class="hangar-page"><div class="hangar-heading"><button class="nav-back" id="hangarBack" aria-label="Back to dock">${icon('icon_back')}</button><h2>Hangar</h2><div class="currency">${icon('icon_sparkle')}<strong>${save.shards}</strong></div></div><p class="fleet-note">Ship styles are cosmetic · all fly the same</p><div class="fleet">${SKINS.map(s => `<div class="ship-card ${save.skin === s.id ? 'equipped' : ''}"><img class="ship-portrait" src="${art('ui/icons/ship_' + s.shape)}" alt="${s.name} artwork"><div class="ship-card-body"><strong>${s.name}</strong><small>${save.skin === s.id ? 'Equipped' : save.owned.includes(s.id) ? 'Owned' : `${s.price} stardust · ${Math.max(0, s.price - save.shards)} more needed`}</small></div><div class="ship-actions"><button class="${save.skin === s.id ? 'selected' : save.owned.includes(s.id) ? '' : 'locked'}" id="skin-${s.id}" ${save.skin === s.id || (!save.owned.includes(s.id) && save.shards < s.price) ? 'disabled' : ''}>${save.skin === s.id ? '✓ Selected' : save.owned.includes(s.id) ? 'Equip' : `${s.price} Unlock`}</button>${save.owned.includes(s.id) ? `<button class="interior-link" id="interior-${s.id}" aria-label="View ${s.name} interior">Interior ↗</button>` : ''}</div></div>`).join('')}</div><button class="decor-link" id="shopFromHangar">${icon('icon_bag')} Decor shop ↗</button><h3>✦ Challenges</h3><div class="challenge-list">${challenges.map(([name, hint, count, target, image]) => { const done = count >= target; return `<div class="challenge-card ${done ? 'complete' : ''}"><span class="challenge-icon">${icon(done ? 'icon_check' : image)}</span><div class="challenge-body"><div class="challenge-heading"><strong>${name}</strong><b>${done ? 'Completed' : `${Math.min(count, target)}/${target}`}</b></div><small>${hint}</small><progress class="challenge-progress" max="${target}" value="${Math.min(count, target)}" aria-label="${name} progress"></progress></div></div>`; }).join('')}</div></div>`, 'hangar');
+  showPanel(`<div class="hangar-page"><div class="hangar-heading"><button class="nav-back" id="hangarBack" aria-label="Back to dock">${icon('icon_back')}</button><h2>Hangar</h2><div class="currency">${icon('icon_sparkle')}<strong>${save.shards}</strong></div></div><p class="fleet-note">Ship styles are cosmetic · all fly the same</p><div class="fleet">${SKINS.map(s => `<div class="ship-card ${save.skin === s.id ? 'equipped' : ''}"><img class="ship-portrait" src="${art('ui/icons/ship_' + s.shape)}" alt="${s.name} artwork"><div class="ship-card-body"><strong>${s.name}</strong><small>${save.skin === s.id ? 'Equipped' : save.owned.includes(s.id) ? 'Owned' : `${s.price} stardust · ${Math.max(0, s.price - save.shards)} more needed`}</small></div><div class="ship-actions"><button class="${save.skin === s.id ? 'selected' : save.owned.includes(s.id) ? '' : 'locked'}" id="skin-${s.id}" ${save.skin === s.id || (!save.owned.includes(s.id) && save.shards < s.price) ? 'disabled' : ''}>${save.skin === s.id ? '✓ Selected' : save.owned.includes(s.id) ? 'Equip' : `${s.price} Unlock`}</button></div></div>`).join('')}</div><h3>✦ Challenges</h3><div class="challenge-list">${challenges.map(([name, hint, count, target, image]) => { const done = count >= target; return `<div class="challenge-card ${done ? 'complete' : ''}"><span class="challenge-icon">${icon(done ? 'icon_check' : image)}</span><div class="challenge-body"><div class="challenge-heading"><strong>${name}</strong><b>${done ? 'Completed' : `${Math.min(count, target)}/${target}`}</b></div><small>${hint}</small><progress class="challenge-progress" max="${target}" value="${Math.min(count, target)}" aria-label="${name} progress"></progress></div></div>`; }).join('')}</div></div>`, 'hangar');
   for (const s of SKINS) {
     $(`skin-${s.id}`).onclick = () => { if (buySkin(save, s.id)) { persist(); hangar(); } };
-    if (save.owned.includes(s.id)) $(`interior-${s.id}`).onclick = () => interior(s.id);
   }
-  $('shopFromHangar').onclick = () => decorShop(save.skin); $('hangarBack').onclick = home;
-}
-function interior(shipId = save.skin) {
-  if (!save.owned.includes(shipId)) shipId = save.skin;
-  roomEditor?.destroy(); roomEditor = null;
-  phase = 'interior'; activeRoomId = shipId;
-  showPanel('', 'interior');
-  roomEditor = new RoomEditor($('panelBody'), save, storage, shipId, { onExit: () => { roomEditor?.destroy(); roomEditor = null; hangar(); }, onStorage: ok => { $('saveWarning').hidden = ok; } });
-}
-function decorShop(shipId = save.skin) {
-  interior(shipId); roomEditor.tab = 'furniture'; roomEditor.inventory = 'shop'; roomEditor.update();
+  $('hangarBack').onclick = returnToDock;
 }
 function supportInfo() {
   phase = 'supportInfo';
@@ -154,7 +177,12 @@ function help() {
   showPanel(`<span class="eyebrow">FLIGHT SCHOOL · 30 SECONDS</span><h2>Let gravity help.</h2><div class="help-card"><img src="${art('ui/illustrations/illustration_aim')}" alt="A ship following a drag arc"><p><b>1. Pull back.</b> Touch near the little ship and drag opposite your intended direction. More pull means more speed.</p></div><p><b>2. Read the line.</b> Adjust direction and power as you drag. Settings lets you tune the aim dead zone to ignore small finger movements. The dotted arc shows only the first 2.1 seconds. It uses the exact same physics as your flight. Beyond the dots, you’re on your own.</p><p><b>3. Release.</b> Collect stars hidden beyond the planets’ direct sightlines by curving around their gravity. Skim a planet and survive to earn a near-miss multiplier. Enter the bright ring to reach the next sector.</p><p>Hit a planet, leave the field, or drift for 14 seconds and the run ends. Voyage has 12 sectors; Endless keeps going. Workshop lets you build and save local custom levels with their own gravity, speed and respawn settings. Custom play earns no stardust or normal records.</p><p><b>Planet field guide:</b> Drifter · Little Nudge. Slingshot · Curved Pull. Orbiter · timed Orbit Lock and tangent release. Crusher · Violent Yank in a tight field. Repulsor · Push Away. Zero-gravity Workshop planets disable forces and capture.</p><p>Keyboard: arrows adjust angle and power, Space launches, Escape pauses. Button aiming is available below the ship.</p><button class="primary" id="helpBack">Got it ↗</button>`);
   $('helpBack').onclick = home;
 }
-$('play').onclick = () => start('voyage'); $('endless').onclick = () => start('endless'); $('workshop').onclick = openWorkshop;
+$('play').onclick = () => start('voyage', 'home'); $('endless').onclick = () => start('endless', 'home'); $('workshop').onclick = openWorkshop;
+$('stationEntry').onclick = openStation;
+$('stationVoyage').onclick = () => start('voyage', 'station'); $('stationEndless').onclick = () => start('endless', 'station');
+$('stationMenu').onclick = home; $('stationWorkshop').onclick = openWorkshop; $('stationSettings').onclick = () => settings('station');
+$('stationReset').onclick = () => station?.reset(); $('stationZoomIn').onclick = () => station?.zoom(1.1); $('stationZoomOut').onclick = () => station?.zoom(.9);
+for (const id of ['hangar', 'engineering_bay', 'stardust_harvester', 'astronaut_station']) $(`station-${id}`).onclick = () => openStationBuilding(id);
 $('pause').onclick = pause; $('settings').onclick = () => settings(); $('hangar').onclick = hangar; $('help').onclick = help;
 $('donate').onclick = support; $('donateInfo').onclick = supportInfo;
 $('aimToggle').onclick = () => { drag = null; assist = !assist; $('assist').hidden = !assist; $('aimToggle').textContent = assist ? 'Hide button aiming' : 'Button aiming'; if (assist) aimFromControls(); else { vector = null; preview = null; } resize(); };
@@ -177,7 +205,7 @@ document.addEventListener('click', e => {
   editorClick = null;
 }, true);
 document.addEventListener('keydown', e => {
-  if (phase === 'interior' && e.key === 'Escape') { e.preventDefault(); window.orbitBack(); return; }
+  if (e.key === 'Escape' && (['station', 'stationBuilding'].includes(phase) || (phase === 'hangar' && menuOrigin === 'station') || (phase === 'settings' && settingsOrigin === 'station'))) { e.preventDefault(); window.orbitBack(); return; }
   if (e.key === 'Escape') { if (phase === 'pause') resume(); else pause(); return; }
   if (phase !== 'aim' || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(e.key) || e.target.tagName === 'INPUT') return;
   e.preventDefault(); if (!assist) { assist = true; $('assist').hidden = false; }
@@ -187,17 +215,19 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowDown') $('power').value = +$('power').value - 5;
   aimFromControls(); if (e.key === ' ') launch();
 });
-window.orbitPause = () => { roomEditor?.cancelDrag(); pause(); sound.suspend(); };
+window.orbitPause = () => { station?.suspend(); pause(); sound.suspend(); };
 window.orbitBack = () => {
   if (phase === 'home') return false;
-  if (phase === 'editor') { if (workshop.libraryOpen) workshop.open(); else home(); }
+  if (phase === 'station') home();
+  else if (phase === 'stationBuilding') openStation();
+  else if (phase === 'editor') { if (workshop.libraryOpen) workshop.open(); else returnToDock(); }
   else if (phase === 'pause') resume();
   else if (phase === 'settings' && settingsOrigin === 'pause') { phase = previous; pause(); }
-  else if (phase === 'shop') interior(activeRoomId);
-  else if (phase === 'interior') { if (!roomEditor?.back()) { roomEditor?.destroy(); roomEditor = null; hangar(); } }
   else if (phase === 'supportInfo') support();
   else if (phase === 'result' && mode === 'custom') openWorkshop();
-  else if (['help', 'hangar', 'settings', 'result', 'donate'].includes(phase)) home();
+  else if (phase === 'result' && runOrigin === 'station') openStation();
+  else if (['hangar', 'settings'].includes(phase)) returnToDock();
+  else if (['help', 'result', 'donate'].includes(phase)) home();
   else pause();
   return true;
 };
@@ -329,6 +359,8 @@ function render(t, dt) {
 function frame(t) {
   const dt = Math.min((t - clock) / 1000 || 0, .1); clock = t;
   if (['flight', 'transit', 'impact'].includes(phase)) { accumulator += dt; while (accumulator >= DT) { accumulator -= DT; tick(DT); if (!['flight', 'transit', 'impact'].includes(phase)) { accumulator = 0; break; } } }
-  if (t > toastUntil) $('toast').textContent = ''; render(t, dt); requestAnimationFrame(frame);
+  if (t > toastUntil) $('toast').textContent = '';
+  if (phase !== 'station' && !(menuOrigin === 'station' && ['hangar', 'stationBuilding', 'settings'].includes(phase))) render(t, dt);
+  requestAnimationFrame(frame);
 }
 home(); requestAnimationFrame(frame);

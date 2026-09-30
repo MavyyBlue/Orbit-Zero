@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-09-30 — Station Foundation candidate
+
+Added an offline low-poly orthographic station with four fixed building plots,
+touch pan/pinch, mouse/keyboard controls, raycast building selection and accessible
+HTML alternatives. Hangar reuses existing ship controls; the other three systems
+are clearly marked future phases. Camera framing persists additively under the
+existing save key. Station launches and result returns use current run functions;
+quick retry remains direct. Workshop and settings retain their entry origin.
+The separate renderer lazy-loads vendored MIT-licensed Three.js r170, releases
+resources/listeners on exit, suspends on background, respects reduced motion and
+supports context recovery and a non-3D access fallback. No income, upgrades,
+hiring or run modifiers are introduced. Protected simulation, planet, aim,
+Workshop model/editor, native host, signing and workflow files are unchanged.
+
+Candidate validation: 56 Node cases, five importer cases and Chromium journeys
+at three phone sizes passed. Software WebGL in Chromium validates behavior;
+Android WebView/physical-device performance and feel remain pending.
+
+## 2026-09-30 — Retire ship interiors for the 3D station direction
+
+Removed Interior and Decor shop entries from Hangar, room-editor runtime routing,
+room styles from the active app, and the unused interior markup helper. Hangar
+retains five ships, selection/unlocks, Stardust and challenges. Legacy room and
+decor ownership saves remain compatible; archived assets and source are retained.
+Revised the station plan around a 3D orbital home and ship garage without cabin
+decorating. Physics, planets, accepted aiming and Workshop are unchanged.
+Validation: syntax and 52 Node cases, five importer cases, and Chromium smoke
+at 320×568, 360×640 and 412×915 passed. Android/phone acceptance remains pending.
+
 ## 2026-09-30 — Bundled hangar-interior candidate
 
 Redesigned five rooms with distinct expanded layouts, smaller furniture and a

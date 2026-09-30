@@ -1,3 +1,32 @@
+# Station Foundation source candidate — 2026-09-30
+
+Local source ZIP: `Orbit-Zero-Station-Foundation.zip`. The complete package
+includes Foundation, the station plan, interior retirement, and prior source.
+It contains source, not an APK. No remote commit, upload or deployment was made.
+
+To use the established mobile workflow, upload this candidate as repository-root
+`orbit-zero-source.zip`, retaining the existing bootstrap. Validate the exact
+imported source SHA through CI and update-install the resulting debug APK without
+uninstalling. Old interior-package delivery notes below are historical.
+
+Local evidence: syntax, 56 Node cases, five Python importer cases and Chromium
+journeys at three phone sizes passed. Package CRC, manifest, clean/repeated import,
+and protected-source preservation are checked with `scripts/verify_package.py`.
+Three.js r170 and its MIT license ship locally. Android build/lint and physical
+WebView/device checks are outstanding; no store-ready or phone acceptance is claimed.
+
+Next phase is Hangar integration after reviewing Foundation. Economy, Engineering,
+technicians and Garden remain deliberately inactive. See STATION_PLAN.md and QA.md.
+
+---
+
+# Historical interior delivery — superseded
+
+The owner retired ship interiors in favor of the 3D orbital station. Do not use
+this old interior-package delivery as the next release instruction. Current local
+changes remove the active room UI while retaining saved data; no updated ZIP/APK
+or remote repository change is claimed. See STATION_PLAN.md and CURRENT_STATE.md.
+
 # Bundled interior delivery — 2026-09-30
 
 Replace repository-root `orbit-zero-source.zip` only. Keep the existing bootstrap

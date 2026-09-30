@@ -1,14 +1,18 @@
 import { DECOR } from './decor.js';
 import { DEFAULT_AIM_DEAD_ZONE, normalizeAimDeadZone } from './aim-lock.js';
 import { defaultRoom, normalizeRoom, syncLegacySlots, findPosition, placeItem } from './room-model.js';
+import { freshStation, normalizeStation } from './station-model.js';
+// Retired ship-room data remains readable and writable for existing saves.
+// The active Hangar no longer exposes interiors or decorating purchases.
 export const SAVE_KEY = 'orbit-zero.save.v1';
-export const freshSave = () => ({ version: 1, best: 0, runs: 0, gates: 0, near: 0, shards: 0, victories: 0, skin: 'ion', owned: ['ion'], decorOwned: [], rooms: {}, daily: {}, settings: { sound: true, music: true, haptics: true, reduced: false, contrast: false, aimDeadZone: DEFAULT_AIM_DEAD_ZONE } });
+export const freshSave = () => ({ version: 1, best: 0, runs: 0, gates: 0, near: 0, shards: 0, victories: 0, skin: 'ion', owned: ['ion'], decorOwned: [], rooms: {}, daily: {}, station: freshStation(), settings: { sound: true, music: true, haptics: true, reduced: false, contrast: false, aimDeadZone: DEFAULT_AIM_DEAD_ZONE } });
 const bounded = v => Number.isSafeInteger(v) && v >= 0 ? Math.min(v, 1000000000) : 0;
 export function parseSave(raw) {
   const s = freshSave();
   try {
     const v = JSON.parse(raw);
     if (!v || v.version !== 1) return s;
+    s.station = normalizeStation(v.station);
     for (const k of ['best', 'runs', 'gates', 'near', 'shards', 'victories']) s[k] = bounded(v[k]);
     s.owned = ['ion', ...SKINS.map(ship => ship.id).filter(k => k !== 'ion' && Array.isArray(v.owned) && v.owned.includes(k))];
     if (s.owned.includes(v.skin)) s.skin = v.skin;
