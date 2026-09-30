@@ -32,3 +32,11 @@
 .library-message button { display:block; margin-top:12px; } #librarySaveCopy { width:100%; margin-bottom:18px; }
 #app[data-custom=true] #notice { top:14%; font-size:10px; }
 @media(max-height:650px) { .workshop-config { max-height:40%; } .workshop-top { top:8px; } }
+.planet-picker { position:absolute; z-index:5; top:140px; left:12px; right:12px; max-height:55%; overflow:auto; pointer-events:auto; background:#17233dfc; border:1px solid #9075c9; border-radius:18px; padding:10px; box-shadow:0 8px 32px #0009; }
+.planet-picker>div { display:flex; align-items:center; justify-content:space-between; padding:0 4px 6px; color:#d8c7ff; }
+.planet-picker>div button { min-height:44px; width:44px; padding:6px; }
+.planet-picker>button { width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:5px; min-height:48px; text-align:left; padding:10px 13px; }
+.planet-picker>button span { font-size:11px; color:#afcadc; }
+.planet-popup.workshop-config { bottom:max(140px,calc(env(safe-area-inset-bottom) + 134px)); max-height:36%; z-index:4; border-color:#b89ae3; }
+.planet-popup summary { background:#35294d; color:#f0ddff; font-size:12px; }
+.planet-popup .workshop-fields { gap:13px; }

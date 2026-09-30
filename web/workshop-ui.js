@@ -1,12 +1,13 @@
-import { cloneLevel, levelWorld, loadWorkshop, writeWorkshop, saveLevel, starterLevel, PLANET_TYPES, MAX_LEVELS, playability } from './workshop.js';
+import { cloneLevel, levelWorld, loadWorkshop, writeWorkshop, saveLevel, starterLevel, MAX_LEVELS, playability } from './workshop.js';
+import { PLANETS, planetConfig } from './planet-rules.js';
 import { icon } from './ui-art.js';
 const escape = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const names = { select: 'Move', planet: 'Planet', star: 'Star', start: 'Launch', exit: 'Exit' };
+const names = { select: 'Move', planet: 'Planets', star: 'Star', start: 'Launch', exit: 'Exit' };
 export class Workshop {
   constructor(root, storage, callbacks) {
     this.root = root; this.storage = storage; this.callbacks = callbacks;
     const loaded = loadWorkshop(storage); this.library = loaded.library; this.available = loaded.available;
-    this.draft = cloneLevel(this.library.draft); this.tool = 'select'; this.selection = null; this.expanded = false; this.history = []; this.status = ''; this.drag = null; this.libraryOpen = false;
+    this.draft = cloneLevel(this.library.draft); this.tool = 'select'; this.selection = null; this.expanded = false; this.history = []; this.status = ''; this.drag = null; this.libraryOpen = false; this.pickerOpen = false; this.planetOpen = false; this.placingKind = 'slingshot';
   }
   $(id) { return this.root.querySelector('#' + id); }
   open() { this.root.hidden = false; this.libraryOpen = false; this.drawUI(); this.changed(false); }
@@ -22,22 +23,26 @@ export class Workshop {
   }
   selected() { const s = this.selection; return s?.kind === 'planet' ? this.draft.planets[s.index] : s?.kind === 'star' ? this.draft.stars[s.index] : s ? this.draft[s.kind] : null; }
   drawUI() {
-    this.root.innerHTML = `<div class="workshop-top"><button id="workshopHome" aria-label="Back to dock">${icon('back')}</button><div><strong>Workshop</strong><small id="workshopState"></small></div><button id="workshopLibrary" aria-label="Open custom level library">${icon('bag')}</button></div><div class="workshop-tools" role="group" aria-label="Placement tools">${Object.entries(names).map(([id, label]) => `<button id="tool-${id}" aria-pressed="${this.tool === id}">${label}${id === 'planet' ? ' +' : id === 'star' ? ' +' : ''}</button>`).join('')}<button id="workshopUndo" ${this.history.length ? '' : 'disabled'}>Undo</button></div><div class="workshop-guide" id="workshopStatus" role="status"></div><details class="workshop-config" id="levelConfig" ${this.expanded ? 'open' : ''}><summary>Level configuration <span>⌃</span></summary><div class="workshop-fields"><label class="level-name">Level name<input id="levelName" maxlength="40" value="${escape(this.draft.name)}"></label>${this.range('width', 'Arena width', 300, 1200, 50, '')}${this.range('height', 'Arena length', 400, 2400, 50, '')}${this.range('gravity', 'All planet gravity', 0, 3, .1, '×')}${this.range('speed', 'Launch speed', .25, 2, .05, '×')}${this.range('duration', 'Flight time limit', 5, 60, 1, 's')}<label class="respawn-row" for="instantRespawn"><span>Instant respawn<small>Return to aiming after a crash or escape</small></span><input type="checkbox" id="instantRespawn" ${this.draft.instantRespawn ? 'checked' : ''}></label>${this.objectFields()}<p class="workshop-tip">Tap a tool, then the field. Use Move to select and drag objects. Resizing fits the whole arena and keeps relative positions. Gravity has no hard cutoff. Up to 12 planets and 24 stars. Custom scores earn no stardust.</p></div></details><div class="workshop-bottom"><button id="workshopNew">New</button><button id="workshopSave">Save</button><button id="workshopPlay" class="primary">Test fly ↗</button></div>`;
+    this.root.innerHTML = `<div class="workshop-top"><button id="workshopHome" aria-label="Back to dock">${icon('back')}</button><div><strong>Workshop</strong><small id="workshopState"></small></div><button id="workshopLibrary" aria-label="Open custom level library">${icon('bag')}</button></div><div class="workshop-tools" role="group" aria-label="Placement tools">${Object.entries(names).map(([id, label]) => `<button id="tool-${id}" aria-pressed="${this.tool === id}" ${id === 'planet' ? `aria-expanded="${this.pickerOpen}" aria-controls="planetPicker"` : ''}>${label}${id === 'planet' ? ' +' : id === 'star' ? ' +' : ''}</button>`).join('')}<button id="workshopUndo" ${this.history.length ? '' : 'disabled'}>Undo</button></div><div class="workshop-guide" id="workshopStatus" role="status"></div><details class="workshop-config" id="levelConfig" ${this.expanded ? 'open' : ''}><summary>Level configuration <span>⌃</span></summary><div class="workshop-fields"><label class="level-name">Level name<input id="levelName" maxlength="40" value="${escape(this.draft.name)}"></label>${this.range('width', 'Arena width', 300, 1200, 50, '')}${this.range('height', 'Arena length', 400, 2400, 50, '')}${this.range('gravity', 'All planet gravity', 0, 3, .1, '×')}${this.range('speed', 'Launch speed', .25, 2, .05, '×')}${this.range('duration', 'Flight time limit', 5, 60, 1, 's')}<label class="respawn-row" for="instantRespawn"><span>Instant respawn<small>Return to aiming after a crash or escape</small></span><input type="checkbox" id="instantRespawn" ${this.draft.instantRespawn ? 'checked' : ''}></label>${this.selection?.kind !== 'planet' ? this.objectFields() : ''}<p class="workshop-tip">Tap a tool, then the field. Use Move to select and drag objects. Resizing fits the whole arena and keeps relative positions. Each mechanic has its own reach and behavior. Up to 12 planets and 24 stars. Custom scores earn no stardust.</p></div></details>${this.pickerMarkup()}${this.planetOpen && this.selection?.kind === 'planet' ? this.planetMarkup() : ''}<div class="workshop-bottom"><button id="workshopNew">New</button><button id="workshopSave">Save</button><button id="workshopPlay" class="primary">Test fly ↗</button></div>`;
     this.$('workshopHome').onclick = () => { this.stash(); this.callbacks.onExit(); };
     this.$('workshopLibrary').onclick = () => this.showLibrary();
     this.$('workshopNew').onclick = () => this.confirmNew();
     this.$('workshopSave').onclick = () => this.save();
     this.$('workshopPlay').onclick = () => this.play();
     this.$('workshopUndo').onclick = () => { this.draft = this.history.pop(); this.selection = null; this.drawUI(); this.changed(); };
-    for (const tool of Object.keys(names)) this.$('tool-' + tool).onclick = () => { this.tool = tool; this.status = tool === 'select' ? 'Tap an object to select it; drag to move.' : `Tap the field to ${tool === 'start' || tool === 'exit' ? 'move' : 'add'} ${names[tool].toLowerCase()}.`; this.drawUI(); this.changed(false); };
-    this.$('levelConfig').ontoggle = () => { this.expanded = this.$('levelConfig').open; this.callbacks.onResize(); };
+    for (const tool of Object.keys(names)) this.$('tool-' + tool).onclick = () => { if (tool === 'planet') { this.pickerOpen = !this.pickerOpen; this.planetOpen = false; this.drawUI(); return; } this.pickerOpen = false; this.planetOpen = false; this.tool = tool; this.status = tool === 'select' ? 'Tap an object to select it; drag to move.' : `Tap the field to ${tool === 'start' || tool === 'exit' ? 'move' : 'add'} ${names[tool].toLowerCase()}.`; this.drawUI(); this.changed(false); };
+    this.$('levelConfig').ontoggle = e => { if (!e.currentTarget.isConnected) return; this.expanded = e.currentTarget.open; if (this.expanded && this.planetOpen) { this.planetOpen = false; this.drawUI(); } this.callbacks.onResize(); };
+    for (const kind of Object.keys(PLANETS)) if (this.$('choose-' + kind)) this.$('choose-' + kind).onclick = () => { this.placingKind = kind; this.tool = 'planet'; this.pickerOpen = false; this.status = `${PLANETS[kind].name} · tap the field to place it.`; this.drawUI(); };
+    if (this.$('closePicker')) this.$('closePicker').onclick = () => { this.pickerOpen = false; this.drawUI(); };
+    if (this.$('planetPopup')) this.$('planetPopup').ontoggle = e => { if (!e.currentTarget.isConnected) return; if (!e.currentTarget.open) { this.planetOpen = false; this.drawUI(); } this.callbacks.onResize(); };
     this.$('levelName').onchange = () => { this.snapshot(); this.draft.name = this.$('levelName').value.trim() || 'Untitled orbit'; this.changed(); };
     for (const key of ['width', 'height', 'gravity', 'speed', 'duration']) this.bindRange(key, this.draft);
     this.$('instantRespawn').onchange = () => { this.snapshot(); this.draft.instantRespawn = this.$('instantRespawn').checked; this.changed(); };
     const selected = this.selected();
-    if (this.selection?.kind === 'planet') {
+    if (this.planetOpen && this.selection?.kind === 'planet') {
       this.bindRange('planetGravity', selected, 'gravity'); this.bindRange('planetRadius', selected, 'radius');
-      this.$('planetType').onchange = () => { this.snapshot(); selected.type = this.$('planetType').value; this.changed(); };
+      for (const [key] of PLANETS[selected.kind].controls) this.bindRange('mechanic-' + key, selected.config, key);
+      this.$('planetKind').onchange = () => { this.snapshot(); selected.kind = this.$('planetKind').value; selected.type = PLANETS[selected.kind].color; selected.config = planetConfig(selected.kind); this.drawUI(); this.changed(); };
     }
     if (this.selection?.kind === 'exit') this.bindRange('exitRadius', selected, 'radius');
     if (this.$('removeObject')) this.$('removeObject').onclick = () => { this.snapshot(); const s = this.selection; this.draft[s.kind === 'planet' ? 'planets' : 'stars'].splice(s.index, 1); this.selection = null; this.drawUI(); this.changed(); };
@@ -50,10 +55,18 @@ export class Workshop {
     input.onkeydown = () => this.snapshot();
     input.oninput = () => { target[key] = Number(input.value); this.$('out-' + id).textContent = input.value + input.dataset.unit; this.changed(); };
   }
+  pickerMarkup() {
+    if (!this.pickerOpen) return '';
+    return `<div class="planet-picker" id="planetPicker" role="group" aria-label="Planet options"><div><strong>Choose a planet</strong><button id="closePicker" aria-label="Close planet options">×</button></div>${Object.entries(PLANETS).map(([kind, def]) => `<button id="choose-${kind}"><strong>${def.name}</strong><span>${def.summary}</span></button>`).join('')}</div>`;
+  }
+  planetMarkup() {
+    const p = this.selected(), def = PLANETS[p.kind];
+    return `<details class="planet-popup workshop-config" id="planetPopup" open><summary>${def.name} · ${def.summary}<span aria-label="Collapse planet configuration">⌄</span></summary><div class="workshop-fields"><label>Planet mechanic<select id="planetKind">${Object.entries(PLANETS).map(([kind, d]) => `<option value="${kind}" ${p.kind === kind ? 'selected' : ''}>${d.name} — ${d.summary}</option>`).join('')}</select></label>${this.range('planetGravity', 'Gravity multiplier', 0, 3, .1, '×', p.gravity)}${this.range('planetRadius', 'Planet radius', 16, 70, 1, '', p.radius)}${def.controls.map(([key, label, min, max, step, unit]) => this.range('mechanic-' + key, label, min, max, step, unit, p.config[key])).join('')}<button id="removeObject" class="danger">Remove this planet</button><p class="workshop-tip">Tap this planet again to close. Zero gravity disables its forces and capture. Changing mechanic resets its specific values.</p></div></details>`;
+  }
   objectFields() {
     const s = this.selection, p = this.selected();
-    if (!s || !p) return '<div class="object-settings">Select a planet to tune its gravity and size.</div>';
-    return `<div class="object-settings"><strong>Selected ${s.kind === 'start' ? 'launch point' : s.kind}${s.index !== undefined ? ' ' + (s.index + 1) : ''}</strong>${s.kind === 'planet' ? this.range('planetGravity', 'This planet gravity', 0, 3, .1, '×', p.gravity) + this.range('planetRadius', 'Planet radius', 16, 70, 1, '', p.radius) + `<label>Planet style<select id="planetType">${PLANET_TYPES.map(t => `<option ${t === p.type ? 'selected' : ''} value="${t}">${t[0].toUpperCase() + t.slice(1)}</option>`).join('')}</select></label>` : ''}${s.kind === 'exit' ? this.range('exitRadius', 'Exit radius', 20, 60, 1, '', p.radius) : ''}${s.kind === 'planet' || s.kind === 'star' ? '<button id="removeObject" class="danger">Remove selected object</button>' : ''}</div>`;
+    if (!s || !p) return '<div class="object-settings">Tap a planet to open its own controls; tap again to close.</div>';
+    return `<div class="object-settings"><strong>Selected ${s.kind === 'start' ? 'launch point' : s.kind}${s.index !== undefined ? ' ' + (s.index + 1) : ''}</strong>${s.kind === 'exit' ? this.range('exitRadius', 'Exit radius', 20, 60, 1, '', p.radius) : ''}${s.kind === 'planet' || s.kind === 'star' ? '<button id="removeObject" class="danger">Remove selected object</button>' : ''}</div>`;
   }
   pointerDown(p, scale) {
     if (this.libraryOpen) return;
@@ -63,26 +76,30 @@ export class Workshop {
       const q = { x: Math.max(.04, Math.min(.96, p.x / d.width)), y: Math.max(.04, Math.min(.96, p.y / d.height)) };
       if ((this.tool === 'planet' && d.planets.length >= 12) || (this.tool === 'star' && d.stars.length >= 24)) { this.status = 'Limit reached: 12 planets / 24 stars.'; this.changed(false); return; }
       this.snapshot();
-      if (this.tool === 'planet') { d.planets.push({ ...q, radius: 24, gravity: 1, type: PLANET_TYPES[d.planets.length % 5] }); this.selection = { kind: 'planet', index: d.planets.length - 1 }; }
+      if (this.tool === 'planet') { const kind = this.placingKind; d.planets.push({ ...q, radius: 24, gravity: 1, kind, type: PLANETS[kind].color, config: planetConfig(kind) }); this.selection = { kind: 'planet', index: d.planets.length - 1 }; this.tool = 'select'; this.planetOpen = true; this.expanded = false; }
       else if (this.tool === 'star') { d.stars.push(q); this.selection = { kind: 'star', index: d.stars.length - 1 }; }
       else { Object.assign(d[this.tool], q); this.selection = { kind: this.tool }; }
       this.status = 'Placed. Use Move to drag it, or configure below.'; this.drawUI(); this.changed(); return;
     }
     const objects = [{ kind: 'start', p: d.start, radius: 15 }, { kind: 'exit', p: d.exit, radius: d.exit.radius }, ...d.stars.map((q, index) => ({ kind: 'star', index, p: q, radius: 9 })), ...d.planets.map((q, index) => ({ kind: 'planet', index, p: q, radius: q.radius }))];
     const hit = objects.map(o => ({ ...o, distance: Math.hypot(xy(o.p).x - p.x, xy(o.p).y - p.y) })).filter(o => o.distance <= Math.max(o.radius + 8, 22 / scale)).sort((a, b) => a.distance - b.distance)[0];
+    const same = hit?.kind === 'planet' && this.selection?.kind === 'planet' && hit.index === this.selection.index;
     this.selection = hit ? { kind: hit.kind, index: hit.index } : null;
-    if (hit) { this.snapshot(); this.drag = { x: p.x, y: p.y, original: { ...hit.p } }; }
-    this.drawUI();
+    if (hit) { this.snapshot(); this.drag = { x: p.x, y: p.y, original: { ...hit.p }, scale, same, wasOpen: this.planetOpen, moved: false }; this.changed(false); }
+    else { this.planetOpen = false; this.drawUI(); }
   }
   pointerMove(p) {
     const q = this.selected(); if (!this.drag || !q) return;
+    if (Math.hypot(p.x - this.drag.x, p.y - this.drag.y) * this.drag.scale > 6) this.drag.moved = true;
     q.x = Math.max(.04, Math.min(.96, this.drag.original.x + (p.x - this.drag.x) / this.draft.width));
     q.y = Math.max(.04, Math.min(.96, this.drag.original.y + (p.y - this.drag.y) / this.draft.height));
     this.changed(false);
   }
   pointerUp(cancel = false) {
     if (!this.drag) return;
-    if (cancel) { this.draft = this.history.pop(); this.selection = null; }
+    if (cancel) { this.draft = this.history.pop(); this.selection = null; this.planetOpen = false; }
+    else if (this.selection?.kind === 'planet') { this.planetOpen = !(this.drag.same && this.drag.wasOpen && !this.drag.moved); if (this.planetOpen) this.expanded = false; }
+    else this.planetOpen = false;
     this.drag = null; this.drawUI(); this.changed();
   }
   save(asCopy = false) {
@@ -126,7 +143,7 @@ export class Workshop {
   }
   viewport(height) {
     if (this.root.hidden || this.libraryOpen) return null;
-    const top = 140, bottom = 84 + (this.$('levelConfig')?.getBoundingClientRect().height || 54);
+    const top = 140, bottom = 84 + (this.$('levelConfig')?.getBoundingClientRect().height || 54) + (this.$('planetPopup')?.getBoundingClientRect().height || 0);
     return { top, height: Math.max(80, height - top - bottom) };
   }
   drawOverlay(ctx, scale) {

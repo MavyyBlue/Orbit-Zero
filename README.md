@@ -15,15 +15,19 @@ of flight using exactly the same fixed-step simulation. Curve around varied
 gravitational planets to collect stars tucked beyond their direct sightlines and
 reach the exit ring. Each surviving near miss raises
 the current sector's multiplier. Crash, escape the field, or time out after 14
-seconds and restart immediately. The gravitational pull now bends flights more
-strongly across a wider region, and the exit ring is slightly wider. On impact,
+seconds and restart immediately. Five mechanically distinct planets add gentle nudges, curved assists, timed
+orbit capture/release, tight violent pulls and outward repulsion. The exit ring
+remains slightly wider. On impact,
 a brief spark and tiny mushroom cloud play before the result screen.
 
 - **Voyage:** twelve generated sectors and an ending; three planets in sectors 1–4,
-  four in 5–8, five in 9–12.
+  four in 5–8, five in 9–12. Drifter/Slingshot introduce aiming in 1–3;
+  Repulsor enters at 4, Orbiter at 6, Crusher at 9. Every generated level has
+  a verified route collecting all three stars and reaching the exit.
 - **Endless:** keep crossing sectors until the run ends; each sector has three to five planets.
 - **Workshop:** touch level creator replacing Daily Orbit. Move/add planets and stars,
-  position launch/exit, configure arena dimensions, gravity, speed, time limit and
+  position launch/exit, choose a mechanic from Planets +, tune selected planet values,
+  configure arena dimensions, gravity, speed, time limit and
   instant respawn. Save up to 30 levels locally with all settings; test them without
   changing normal records or stardust. See [Workshop guide](docs/WORKSHOP.md).
 - **Hangar:** five small ship silhouettes with previews beside each name, unlocked with collected stars

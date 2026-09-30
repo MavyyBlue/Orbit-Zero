@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-30 — Five planet mechanics candidate
+
+Added Drifter, Slingshot, Orbiter, Crusher and Repulsor with distinct field rules
+and shared preview/live capture-release state. Journey introduces low-skill types
+in 1–3, Repulsor at 4, Orbiter at 6 and Crusher at 9. Generated routes and staged
+fallbacks are verified with the new rules. Workshop gains a five-option picker,
+per-type settings and tap/re-tap planet panels. Values persist with levels; old
+custom planets migrate to Slingshot. Added visual field cues and orbit audio.
+Local physics/route/UI validation precedes owner import and new exact-SHA CI.
+
 ## 2026-09-30 — Local Workshop candidate
 
 Replaced Daily Orbit with a touch level editor and local library. Added arena

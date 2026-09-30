@@ -71,3 +71,18 @@ update one without duplication. Verify custom background pause and Android Back,
 instant-respawn aim reset, old progress after an update install, and normal
 Voyage/Endless controls. Arbitrary handmade levels may be impossible; completion
 checks are manual. Storage quota/failure and extreme zoom need device review.
+
+## Five planet regression
+
+Force tests compare signs, cutoff and near/far ratios, not just multipliers.
+Orbiter tests cover no teleport, partial/full orbit, timed release, no recapture,
+zero gravity and exact preview/live state through transitions and mixed forces.
+All twelve fallback stage/count pairs reach the gate with all stars. A 192-world
+Voyage/Endless audit spans eight seeds and twelve sectors. The existing tests
+retain obscured stars/gate and a full UI Voyage.
+
+Browser checks cover five picker summaries, type-specific controls, stored type
+values, actual touch reclick closing/reopening, compatibility-click suppression,
+and capture → pause → resume → release at three phone sizes. Physical acceptance
+still needs all five types, high-speed Crusher collisions, gravity-zero obstacles,
+old custom-level retuning and preview trust on the target Android WebView.

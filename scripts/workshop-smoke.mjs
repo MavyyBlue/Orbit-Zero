@@ -15,6 +15,9 @@ export async function workshopSmoke(page, viewport) {
   await page.screenshot({ path: `build/screenshots/workshop-config-${viewport.width}.png` });
   await page.locator('#levelConfig summary').click();
   await page.locator('#tool-planet').click();
+  assert.equal(await page.locator('.planet-picker>button').count(), 5);
+  await page.screenshot({ path: `build/screenshots/planet-picker-${viewport.width}.png` });
+  await page.locator('#choose-slingshot').click();
   // Viewport fit: the current arena is centered between tools and config.
   const rect = await page.locator('#space').boundingBox();
   const configHeight = await page.locator('#levelConfig').evaluate(el => el.getBoundingClientRect().height);
@@ -29,14 +32,33 @@ export async function workshopSmoke(page, viewport) {
   await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: tx - 15, y: ty + 10 }] });
   await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   await touch.detach();
-  await page.locator('#levelConfig summary').click();
-  await set('planetGravity', 2.2); await set('planetRadius', 31); await page.locator('#planetType').selectOption('ice');
-  await page.locator('#levelConfig summary').click();
+  await page.locator('#planetPopup').waitFor();
+  await set('planetGravity', 2.2); await set('planetRadius', 31); await page.locator('#planetKind').selectOption('orbiter');
+  await set('mechanic-orbitStrength', 1.4); await set('mechanic-orbitTime', 1.2);
+  await page.screenshot({ path: `build/screenshots/planet-config-${viewport.width}.png` });
+  for (const [kind, key] of [['drifter', 'reach'], ['slingshot', 'bend'], ['orbiter', 'orbitTime'], ['crusher', 'tightness'], ['repulsor', 'repulsion']]) {
+    await page.locator('#planetKind').selectOption(kind);
+    assert.equal(await page.locator('#cfg-mechanic-' + key).count(), 1, `${kind} gets its own controls`);
+    assert.equal(await page.locator('#cfg-mechanic-orbitTime').count(), kind === 'orbiter' ? 1 : 0);
+  }
+  await page.locator('#planetKind').selectOption('orbiter');
+  await set('mechanic-orbitStrength', 1.4); await set('mechanic-orbitTime', 1.2);
+  const planetPoint = async () => page.evaluate(() => {
+    const d = JSON.parse(localStorage.getItem('orbit-zero.workshop.v1')).draft, p = d.planets[3], r = document.getElementById('space').getBoundingClientRect();
+    const bottom = 84 + document.getElementById('levelConfig').getBoundingClientRect().height + (document.getElementById('planetPopup')?.getBoundingClientRect().height || 0), available = Math.max(80, r.height - 140 - bottom), scale = Math.min((r.width - 24) / d.width, available / d.height);
+    return { x: r.left + (r.width - d.width * scale) / 2 + p.x * d.width * scale, y: r.top + 140 + (available - d.height * scale) / 2 + p.y * d.height * scale };
+  });
+  let pp = await planetPoint(); await page.touchscreen.tap(pp.x, pp.y);
+  assert.equal(await page.locator('#planetPopup').count(), 0, 'Reclick closes selected planet popup');
+  pp = await planetPoint(); await page.touchscreen.tap(pp.x, pp.y);
+  assert.equal(await page.locator('#planetPopup').isVisible(), true, 'Reclick opens it again');
+  await page.locator('#planetPopup summary').click();
   await page.locator('#workshopSave').click();
   const key = 'orbit-zero.workshop.v1';
   const saved = await page.evaluate(k => JSON.parse(localStorage.getItem(k)), key);
   assert.equal(saved.levels.length, 1); assert.equal(saved.levels[0].planets.length, 4);
   assert.ok(saved.levels[0].planets[3].x < .82, 'Touch drag moves the placed planet');
+  assert.equal(saved.levels[0].planets[3].kind, 'orbiter'); assert.equal(saved.levels[0].planets[3].config.orbitTime, 1.2);
   assert.equal(saved.levels[0].planets[3].gravity, 2.2); assert.equal(saved.levels[0].speed, 1.35); assert.equal(saved.levels[0].instantRespawn, true);
   await page.locator('#workshopHome').click(); await page.reload(); await page.locator('#workshop').click();
   await page.locator('#workshopLibrary').click();

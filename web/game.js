@@ -2,6 +2,7 @@ import { W, H, DT, START, GRAVITY_REACH, encounter, launchVector, createFlight, 
 import { loadSave, writeSave, SKINS, SHIP_OUTLINES, buySkin, roomFor, setRoomColor, buyDecor } from './save.js';
 import { DECOR } from './decor.js';
 import { art, icon, interiorMarkup } from './ui-art.js';
+import { PLANETS } from './planet-rules.js';
 import { Workshop } from './workshop-ui.js';
 import { Sound } from './audio.js';
 const $ = id => document.getElementById(id), canvas = $('space'), ctx = canvas.getContext('2d');
@@ -10,7 +11,7 @@ const loaded = loadSave(storage), save = loaded.save, sound = new Sound(save.set
 let phase = 'home', previous = 'aim', mode = 'voyage', seed = 1, sector = 1, total = 0, shards = 0, nears = 0, gates = 0;
 let world = encounter(1), flight = null, vector = null, drag = null, trail = [], particles = [], preview = null;
 let clock = 0, accumulator = 0, toastUntil = 0, transition = 0, impactAge = 0, width = 400, height = 720, scale = 1, offsetX = 0, offsetY = 0;
-let workshop = null, customLevel = null, editorPointer = null;
+let workshop = null, customLevel = null, editorPointer = null, editorClick = null;
 let finished = false, assist = false, bestBefore = 0, settingsOrigin = 'home', activeRoomId = 'ion';
 const starRng = rng(9201), stars = Array.from({ length: 95 }, () => ({ x: starRng() * W, y: starRng() * H, r: starRng() * 1.1 + .25, a: starRng() * .45 + .2 }));
 function persist() { $('saveWarning').hidden = writeSave(storage, save); }
@@ -154,7 +155,7 @@ function support() {
 }
 function help() {
   phase = 'help';
-  showPanel(`<span class="eyebrow">FLIGHT SCHOOL · 30 SECONDS</span><h2>Let gravity help.</h2><div class="help-card"><img src="${art('ui/illustrations/illustration_aim')}" alt="A ship following a drag arc"><p><b>1. Pull back.</b> Touch near the little ship and drag opposite your intended direction. More pull means more speed.</p></div><p><b>2. Read the line.</b> The dotted arc shows only the first 2.1 seconds. It uses the exact same physics as your flight. Beyond the dots, you’re on your own.</p><p><b>3. Release.</b> Collect stars hidden beyond the planets’ direct sightlines by curving around their gravity. Skim a planet and survive to earn a near-miss multiplier. Enter the bright ring to reach the next sector.</p><p>Hit a planet, leave the field, or drift for 14 seconds and the run ends. Voyage has 12 sectors; Endless keeps going. Workshop lets you build and save local custom levels with their own gravity, speed and respawn settings. Custom play earns no stardust or normal records.</p><p>Keyboard: arrows adjust angle and power, Space launches, Escape pauses. Button aiming is available below the ship.</p><button class="primary" id="helpBack">Got it ↗</button>`);
+  showPanel(`<span class="eyebrow">FLIGHT SCHOOL · 30 SECONDS</span><h2>Let gravity help.</h2><div class="help-card"><img src="${art('ui/illustrations/illustration_aim')}" alt="A ship following a drag arc"><p><b>1. Pull back.</b> Touch near the little ship and drag opposite your intended direction. More pull means more speed.</p></div><p><b>2. Read the line.</b> The dotted arc shows only the first 2.1 seconds. It uses the exact same physics as your flight. Beyond the dots, you’re on your own.</p><p><b>3. Release.</b> Collect stars hidden beyond the planets’ direct sightlines by curving around their gravity. Skim a planet and survive to earn a near-miss multiplier. Enter the bright ring to reach the next sector.</p><p>Hit a planet, leave the field, or drift for 14 seconds and the run ends. Voyage has 12 sectors; Endless keeps going. Workshop lets you build and save local custom levels with their own gravity, speed and respawn settings. Custom play earns no stardust or normal records.</p><p><b>Planet field guide:</b> Drifter · Little Nudge. Slingshot · Curved Pull. Orbiter · timed Orbit Lock and tangent release. Crusher · Violent Yank in a tight field. Repulsor · Push Away. Zero-gravity Workshop planets disable forces and capture.</p><p>Keyboard: arrows adjust angle and power, Space launches, Escape pauses. Button aiming is available below the ship.</p><button class="primary" id="helpBack">Got it ↗</button>`);
   $('helpBack').onclick = home;
 }
 $('play').onclick = () => start('voyage'); $('endless').onclick = () => start('endless'); $('workshop').onclick = openWorkshop;
@@ -164,13 +165,20 @@ $('aimToggle').onclick = () => { assist = !assist; $('assist').hidden = !assist;
 $('angle').oninput = $('power').oninput = aimFromControls; $('launchButton').onclick = launch;
 function point(e) { const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left - offsetX) / scale, y: (e.clientY - r.top - offsetY) / scale }; }
 canvas.onpointerdown = e => {
-  if (phase === 'editor') { if (editorPointer !== null) return; editorPointer = e.pointerId; canvas.setPointerCapture(e.pointerId); workshop.pointerDown(point(e), scale); return; }
+  if (phase === 'editor') { e.preventDefault(); if (editorPointer !== null) return; editorPointer = e.pointerId; canvas.setPointerCapture(e.pointerId); workshop.pointerDown(point(e), scale); return; }
   if (phase !== 'aim' || drag) return; const p = point(e), origin = world.start || START; if (Math.hypot(p.x - origin.x, p.y - origin.y) > (mode === 'custom' ? Math.max(95, 44 / scale) : 95)) return;
   sound.unlock(); drag = { ...p, id: e.pointerId }; canvas.setPointerCapture(e.pointerId); vector = null; preview = null;
 };
 canvas.onpointermove = e => { if (phase === 'editor' && editorPointer === e.pointerId) { workshop.pointerMove(point(e)); return; } if (!drag || drag.id !== e.pointerId || phase !== 'aim') return; const p = point(e); vector = launchVector((p.x - drag.x) * (mode === 'custom' ? scale / .55 : 1), (p.y - drag.y) * (mode === 'custom' ? scale / .55 : 1)); if (vector && mode === 'custom') { vector.vx *= world.speed; vector.vy *= world.speed; } preview = vector ? predict(vector, world) : null; };
-canvas.onpointerup = e => { if (phase === 'editor' && editorPointer === e.pointerId) { editorPointer = null; workshop.pointerUp(); return; } if (!drag || drag.id !== e.pointerId) return; drag = null; launch(); };
+canvas.onpointerup = e => { if (phase === 'editor' && editorPointer === e.pointerId) { editorClick = { x: e.clientX, y: e.clientY, until: performance.now() + 600 }; editorPointer = null; workshop.pointerUp(); return; } if (!drag || drag.id !== e.pointerId) return; drag = null; launch(); };
 canvas.onpointercancel = () => { if (phase === 'editor') { editorPointer = null; workshop.pointerUp(true); return; } drag = null; vector = null; preview = null; };
+// A touch ending on the canvas can synthesize a click on a newly opened panel.
+// Consume that gesture's click; a fresh UI pointerdown always clears the guard.
+document.addEventListener('pointerdown', e => { if (e.target !== canvas) editorClick = null; }, true);
+document.addEventListener('click', e => {
+  if (editorClick && performance.now() <= editorClick.until && Math.hypot(e.clientX - editorClick.x, e.clientY - editorClick.y) < 4) { e.preventDefault(); e.stopPropagation(); }
+  editorClick = null;
+}, true);
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { if (phase === 'pause') resume(); else pause(); return; }
   if (phase !== 'aim' || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(e.key) || e.target.tagName === 'INPUT') return;
@@ -201,6 +209,8 @@ function tick(dt) {
     advance(flight, world); trail.push({ x: flight.x, y: flight.y }); if (trail.length > 110) trail.shift();
     for (const event of flight.events) {
       sound.cue(event);
+      if (event === 'orbit') toast('ORBIT LOCK');
+      if (event === 'release') { burst(flight.x, flight.y, '#c8abff', 14); toast('ORBIT RELEASE'); }
       if (event === 'pickup') { burst(flight.x, flight.y, '#ffdda5', 10); toast(`STAR +${100 * flight.combo}`); }
       if (event === 'near') { burst(flight.x, flight.y, '#9cf5df', 28); toast(`CLOSE CALL ×${flight.combo}`); }
     }
@@ -226,20 +236,34 @@ const PLANET_PALETTES = {
   sand: ['#ffe1a3', '#c49461', '#665044']
 };
 function drawPlanet(p, t) {
-  const colors = PLANET_PALETTES[p.type] || PLANET_PALETTES.ember;
-  circle(p.x, p.y, p.radius + GRAVITY_REACH * .28, null, colors[1] + '2d');
-  circle(p.x, p.y, p.radius + GRAVITY_REACH * .44, null, colors[1] + '13');
+  const def = PLANETS[p.kind], colors = PLANET_PALETTES[def?.color || p.type] || PLANET_PALETTES.ember;
+  if (def && p.kind !== 'slingshot') {
+    const reach = p.radius + p.config.reach;
+    ctx.save(); ctx.setLineDash(p.kind === 'orbiter' ? [4, 6] : p.kind === 'drifter' ? [2, 9] : []);
+    circle(p.x, p.y, reach, null, colors[1] + (p.kind === 'crusher' ? '65' : '38'));
+    ctx.restore();
+    if (p.kind === 'orbiter') circle(p.x, p.y, p.radius + 55, null, '#d6b7ff44');
+    if (p.kind === 'repulsor' || p.kind === 'crusher') for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2 + .4, r = p.radius + (p.kind === 'repulsor' ? p.config.reach * .45 : 18), direction = p.kind === 'repulsor' ? 1 : -1;
+      ctx.save(); ctx.translate(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r); ctx.rotate(a); ctx.strokeStyle = colors[0] + '99'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(-4 * direction, -4); ctx.lineTo(3 * direction, 0); ctx.lineTo(-4 * direction, 4); ctx.stroke(); ctx.restore();
+    }
+  } else {
+    circle(p.x, p.y, p.radius + GRAVITY_REACH * .28, null, colors[1] + '2d');
+    circle(p.x, p.y, p.radius + GRAVITY_REACH * .44, null, colors[1] + '13');
+  }
   const g = ctx.createRadialGradient(p.x - p.radius * .45, p.y - p.radius * .45, 1, p.x, p.y, p.radius);
   g.addColorStop(0, colors[0]); g.addColorStop(.58, colors[1]); g.addColorStop(1, colors[2]);
   circle(p.x, p.y, p.radius, g, colors[0] + '88');
   ctx.save(); ctx.translate(p.x, p.y);
-  if (p.type === 'sand' || p.type === 'jade') {
+  const appearance = def?.color || p.type;
+  if (appearance === 'sand' || appearance === 'jade') {
     ctx.rotate(-.42); ctx.beginPath(); ctx.ellipse(0, 0, p.radius * 1.6, p.radius * .31, 0, 0, Math.PI * 2);
-    ctx.strokeStyle = colors[0] + '88'; ctx.lineWidth = p.type === 'sand' ? 3 : 2; ctx.stroke();
-  } else if (p.type === 'ice') {
+    ctx.strokeStyle = colors[0] + '88'; ctx.lineWidth = appearance === 'sand' ? 3 : 2; ctx.stroke();
+  } else if (appearance === 'ice') {
     circle(-p.radius * .13, -p.radius * .18, p.radius * .28, null, '#f4ffff88');
     circle(p.radius * .38, p.radius * .28, p.radius * .14, null, '#f4ffff66');
-  } else if (p.type === 'violet') {
+  } else if (appearance === 'violet') {
     ctx.strokeStyle = '#f0e1ff99'; ctx.lineWidth = 1.5; ctx.beginPath();
     ctx.moveTo(-p.radius * .42, p.radius * .12); ctx.lineTo(0, -p.radius * .6);
     ctx.lineTo(p.radius * .32, p.radius * .3); ctx.stroke();
@@ -248,6 +272,7 @@ function drawPlanet(p, t) {
     circle(-p.radius * .32, p.radius * .26, p.radius * .12, '#ffe0b044');
   }
   ctx.restore();
+  if (def && scale >= .3) { ctx.fillStyle = colors[0]; ctx.font = `${Math.max(8, 8 / scale)}px system-ui`; ctx.textAlign = 'center'; ctx.fillText(def.name.toUpperCase(), p.x, p.y + p.radius + 13 / scale); }
 }
 function drawShip(p, velocity, style, t) {
   const angle = velocity ? Math.atan2(velocity.vy, velocity.vx) + Math.PI / 2 : 0;
@@ -298,6 +323,7 @@ function render(t, dt) {
     drawShip(p, flight || vector, style, t);
     if (phase === 'aim') { circle(p.x, p.y, 25, null, color + '55'); if (vector) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - vector.vx / 3.2, p.y - vector.vy / 3.2); ctx.strokeStyle = color + '77'; ctx.setLineDash([3, 5]); ctx.stroke(); ctx.setLineDash([]); } }
   }
+  if (flight?.orbit && phase !== 'impact') { const p = displayWorld.planets[flight.orbit.index]; circle(p.x, p.y, flight.orbit.radius, null, '#e7d2ff88', 2); }
   if (phase === 'editor') workshop?.drawOverlay(ctx, scale);
   if (phase === 'impact' && flight) drawImpact(flight, impactAge);
   for (const p of particles) { if (!['pause', 'settings'].includes(phase)) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; } ctx.globalAlpha = Math.max(0, p.life); circle(p.x, p.y, 2, p.color); } ctx.globalAlpha = 1; particles = particles.filter(p => p.life > 0); ctx.restore();

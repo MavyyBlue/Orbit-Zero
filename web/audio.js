@@ -16,7 +16,7 @@ export class Sound {
   }
   cue(kind) {
     if (this.settings.sound) {
-      const notes = { launch: [220, 330], pickup: [660, 880], near: [440, 660, 990], gate: [330, 440, 660, 880], crash: [85, 48], lost: [147, 98] }[kind] || [330];
+      const notes = { launch: [220, 330], pickup: [660, 880], near: [440, 660, 990], orbit: [262, 392, 523], release: [523, 784], gate: [330, 440, 660, 880], crash: [85, 48], lost: [147, 98] }[kind] || [330];
       notes.forEach((f, i) => setTimeout(() => this.tone(f, .22, .045, kind === 'crash' ? 'triangle' : 'sine'), i * 55));
     }
     if (this.settings.haptics && ['near', 'gate', 'crash'].includes(kind)) {

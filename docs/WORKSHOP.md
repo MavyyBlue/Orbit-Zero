@@ -1,14 +1,16 @@
 # Workshop — local level creator
 
-Workshop replaces Daily Orbit on the dock. Voyage and Endless remain unchanged.
+Workshop replaces Daily Orbit on the dock. Voyage and Endless now use the five mechanical planet types.
 
 ## Build and fly
 
 The starter draft uses a known playable three-planet orbit. Tap **Move**, then
-select/drag an object. **Planet +** and **Star +** place new objects on the field.
-**Launch** and **Exit** reposition those points. Select a planet to change its
-style, radius and gravity; select the exit to change its radius. Remove selected
-planets/stars from configuration. Undo remembers up to 30 edits in this session.
+select/drag an object. **Planets +** opens a picker with five types and short summaries. Choose a type,
+then tap the field; placement returns to Move. **Star +** adds stars.
+**Launch** and **Exit** reposition those points. Tap a planet to open its own collapsible panel; tap that same planet again to
+close it. Tune its mechanic, radius, gravity and relevant values (reach, curve,
+orbit strength/duration/release, core tightness or repulsion); select the exit to change its radius. Remove selected
+planets from their panel, or selected stars from level configuration. Undo remembers up to 30 edits in this session.
 
 The fixed **Level configuration** panel expands/collapses and scrolls internally.
 Arena width (300–1200) and length (400–2400) automatically zoom to fit the viewport.
@@ -38,3 +40,16 @@ restart when storage is available. The header reports session-only storage and
 Save reports failure if persistence is unavailable. There is no cloud sync,
 online workshop, file exchange or account. Clearing app data or uninstalling
 removes this library. Install updates without uninstalling to preserve it.
+
+## Planet values and older levels
+
+See `PLANETS.md` for the mechanics and learning curve. The selected planet panel
+shows only controls relevant to its type. Choosing another mechanic resets those
+specific controls to defaults; changing gravity/radius leaves them intact. All
+values travel with the saved level. A zero gravity multiplier disables forces
+and capture, but the planet remains a solid obstacle.
+
+Older saved custom layouts retain their names, geometry and flight settings.
+Planets without a mechanical type migrate to Slingshot. Its stronger curved pull
+can change an old custom level's solution, so retest or tune those layouts.
+Named levels are still distinct from the autosaved draft and normal progress.

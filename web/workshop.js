@@ -1,4 +1,5 @@
 // Versioned, local-only custom levels. Geometry is normalized so resizing is reversible.
+import { PLANETS, planetKind, planetConfig } from './planet-rules.js';
 import { encounter, W, H, START } from './simulation.js';
 export const WORKSHOP_KEY = 'orbit-zero.workshop.v1';
 export const MAX_LEVELS = 30;
@@ -10,7 +11,7 @@ const point = (p, fallback) => ({ x: clamp(p?.x, .04, .96, fallback.x), y: clamp
 export const cloneLevel = value => JSON.parse(JSON.stringify(value));
 export function sanitizeLevel(raw) {
   if (!raw || raw.version !== 1 || !Array.isArray(raw.planets) || !Array.isArray(raw.stars)) return null;
-  const planets = raw.planets.slice(0, 12).map((p, i) => ({ ...point(p, { x: .5, y: .3 + i * .03 }), radius: number(p?.radius, 'radius', 24), gravity: number(p?.gravity, 'gravity', 1), type: PLANET_TYPES.includes(p?.type) ? p.type : 'ice' }));
+  const planets = raw.planets.slice(0, 12).map((p, i) => ({ ...point(p, { x: .5, y: .3 + i * .03 }), radius: number(p?.radius, 'radius', 24), gravity: number(p?.gravity, 'gravity', 1), type: PLANET_TYPES.includes(p?.type) ? p.type : PLANETS[planetKind(p)].color, kind: planetKind(p), config: planetConfig(planetKind(p), p?.config) }));
   return { version: 1, id: typeof raw.id === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(raw.id) ? raw.id : '', name: typeof raw.name === 'string' ? raw.name.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 40) || 'Untitled orbit' : 'Untitled orbit',
     width: Math.round(number(raw.width, 'width', W)), height: Math.round(number(raw.height, 'height', H)),
     gravity: number(raw.gravity, 'gravity', 1), speed: number(raw.speed, 'speed', 1), duration: number(raw.duration, 'duration', 20), instantRespawn: raw.instantRespawn === true,
@@ -19,14 +20,14 @@ export function sanitizeLevel(raw) {
 }
 export function starterLevel() {
   const w = encounter(57, 1);
-  return sanitizeLevel({ version: 1, name: 'My first orbit', width: W, height: H, start: { x: START.x / W, y: START.y / H }, exit: { x: w.gate.x / W, y: w.gate.y / H, radius: w.gate.radius }, planets: w.planets.map(p => ({ x: p.x / W, y: p.y / H, radius: p.radius, gravity: p.mass / 150000, type: p.type })), stars: w.pickups.map(p => ({ x: p.x / W, y: p.y / H })), gravity: 1, speed: 1, duration: 20, instantRespawn: false });
+  return sanitizeLevel({ version: 1, name: 'My first orbit', width: W, height: H, start: { x: START.x / W, y: START.y / H }, exit: { x: w.gate.x / W, y: w.gate.y / H, radius: w.gate.radius }, planets: w.planets.map(p => ({ x: p.x / W, y: p.y / H, radius: p.radius, gravity: p.mass / 150000, type: p.type, kind: p.kind, config: p.config })), stars: w.pickups.map(p => ({ x: p.x / W, y: p.y / H })), gravity: 1, speed: 1, duration: 20, instantRespawn: false });
 }
 export function levelWorld(raw) {
   const d = sanitizeLevel(raw);
   if (!d) throw new Error('Invalid custom level');
   const xy = p => ({ x: p.x * d.width, y: p.y * d.height });
   return { width: d.width, height: d.height, minY: 0, maxAge: d.duration, speed: d.speed, start: xy(d.start),
-    planets: d.planets.map(p => ({ ...xy(p), radius: p.radius, mass: 150000 * p.gravity * d.gravity, type: p.type })),
+    planets: d.planets.map(p => ({ ...xy(p), radius: p.radius, mass: 150000 * p.gravity * d.gravity, type: p.type, kind: p.kind, config: { ...p.config } })),
     pickups: d.stars.map(p => ({ ...xy(p), radius: 9 })), gate: { ...xy(d.exit), radius: d.exit.radius }, hazards: [], label: d.name, sector: 1 };
 }
 export function playability(raw) {

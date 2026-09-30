@@ -30,7 +30,8 @@ ends after 2.1 simulated seconds or an earlier terminal event. Planet contact us
 swept segment collision. Gravity is softened at short distance; it is an arcade
 model, not a scientific N-body solver. Its broader inverse-square skirt boosts
 acceleration at near and far distances, while visual orbit rings suggest reach;
-the field has no hard cutoff. Planet mass and encounter route selection stay in
+Slingshot and the passive Orbiter attraction have no hard cutoff; other types
+have explicit bounded fields. Planet mass and encounter route selection stay in
 the same simulation module. Physics does not depend on DOM, audio, or
 platform APIs. Fixed-step determinism is tested within the JS runtime; cross-engine
 bitwise equality is not claimed.
@@ -85,7 +86,8 @@ no longer exposed as a playable mode. Custom scores never enter normal rewards.
 `workshop-ui.js` owns touch editing, configuration and library interactions.
 `game.js` runs custom flights and respawn/result transitions. All custom prediction
 and flight call the same `advance`; world start, bounds and duration override only
-explicit custom values. Production defaults and generation remain unchanged.
+explicit custom values. Production world-size/time defaults stay unchanged. Encounter mechanics now
+follow the staged five-type progression.
 
 Level geometry uses normalized coordinates; resizing preserves relative positions
 but radii stay in world units. Global and individual planet multipliers scale the
@@ -100,3 +102,25 @@ a saved entry or apply a deletion. Overwrites retain IDs; copies receive new IDs
 Unsaved-draft replacement and deletion require in-app confirmation. Spawn/exit
 overlap is checked before play; no automatic proof of solvability is promised for
 handmade levels. No remote workshop, accounts, sharing or backend is implemented.
+
+## Planet mechanics authority
+
+`planet-rules.js` owns the shared catalog, bounds, force profiles and Orbiter state
+transition rules. `advance` invokes those exact rules for flight, preview and
+generation's route verification. Orbiter's active index, entry age, direction,
+ring radius/speed and visited indices live in the flight snapshot, never in the
+level or a rendering clock. Capture changes velocity without teleporting position.
+A damped radial/tangential controller holds a short orbit; expiry adds a tangent
+boost and prevents recapture by the same planet during that flight. Other planets'
+forces/collisions still apply. Pause halts simulation age and lock expiry.
+
+Drifter has a weak tapered finite field; Slingshot has a broad inverse-square
+curve with a close lens; Crusher has a steep capped short-range profile; Repulsor
+has a bounded linear outward profile. These differ in sign, reach and shape,
+not only a scalar. Gravity-zero disables force and capture but keeps collision.
+
+Encounter generation searches with the new mechanics and verifies all three stars
+and the gate before returning a world. Late exits can sit on an upper orbital arc
+rather than a fixed top strip. A bounded search falls back to a verified template
+for its progression stage and body count; all twelve fallback combinations are
+tested. Existing world bounds, score/save keys and debug signing remain stable.
