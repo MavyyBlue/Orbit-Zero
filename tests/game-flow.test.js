@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { encounter, createFlight, advance, dailySeed } from '../web/simulation.js';
+import { encounter, createFlight, advance } from '../web/simulation.js';
 
 test('complete UI voyage, pause, retry, save restoration data and cosmetic/settings menus', async () => {
   const elements = new Map(), listeners = {}, storage = new Map(); let frame;
@@ -71,12 +71,12 @@ test('complete UI voyage, pause, retry, save restoration data and cosmetic/setti
   click('hangar'); assert.match(el('panelBody').innerHTML, /Zero to infinity/);
   assert.equal((el('panelBody').innerHTML.match(/class="ship-portrait"/g) || []).length, 5);
   click('hangarBack');
-  click('daily'); assert.match(el('sectorLabel').textContent, /DAILY/);
+  click('endless'); assert.match(el('sectorLabel').textContent, /SECTOR/);
   // Pointer cancellation must not launch.
   const c = el('space'); c.onpointerdown({ clientX: 200, clientY: 574, pointerId: 1 }); c.onpointermove({ clientX: 200, clientY: 670, pointerId: 1 }); c.onpointercancel(); c.onpointerup({ pointerId: 1 });
   assert.equal(el('aimControls').hidden, false);
-  // Find a real collision in the current Daily field, then verify the impact beat.
-  const w = encounter(dailySeed(), 1, 'daily'); let crash;
+  // Find a real collision in the current Endless field, then verify the impact beat.
+  const w = encounter(57, 1, 'endless'); let crash;
   for (let power = 40; power <= 100 && !crash; power += 10) for (let angle = -60; angle <= 60 && !crash; angle += 5) {
     const a = angle * Math.PI / 180, s = createFlight({ vx: Math.sin(a) * power / 100 * 368, vy: -Math.cos(a) * power / 100 * 368 });
     for (let i = 0; i < 1681 && s.status === 'flight'; i++) advance(s, w);

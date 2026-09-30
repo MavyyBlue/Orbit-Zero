@@ -108,8 +108,8 @@ export function launchVector(dx, dy) {
   if (d < 10) return null;
   return { vx: -dx / d * length * 3.2, vy: -dy / d * length * 3.2 };
 }
-export function createFlight(v) {
-  return { ...START, ...v, age: 0, status: 'flight', collected: [], near: [], close: [], score: 0, combo: 1, events: [] };
+export function createFlight(v, world) {
+  return { ...(world?.start || START), ...v, age: 0, status: 'flight', collected: [], near: [], close: [], score: 0, combo: 1, events: [] };
 }
 function segmentDistance(ax, ay, bx, by, x, y) {
   const dx = bx - ax, dy = by - ay;
@@ -145,13 +145,13 @@ export function advance(s, world, dt = DT) {
   });
   if (segmentDistance(ox, oy, s.x, s.y, world.gate.x, world.gate.y) <= world.gate.radius) {
     s.score += 500 * s.combo; s.status = 'gate'; s.events.push('gate');
-  } else if (s.x < -20 || s.x > W + 20 || s.y < 65 || s.y > H + 20 || s.age >= 14) {
+  } else if (s.x < -20 || s.x > (world.width ?? W) + 20 || s.y < (world.minY ?? 65) || s.y > (world.height ?? H) + 20 || s.age >= (world.maxAge ?? 14)) {
     s.status = 'lost'; s.events.push('lost');
   }
   return s;
 }
 export function predict(vector, world, seconds = 2.1) {
-  const s = createFlight(vector), points = [{ x: s.x, y: s.y }];
+  const s = createFlight(vector, world), points = [{ x: s.x, y: s.y }];
   for (let i = 0; i < Math.floor(seconds / DT) && s.status === 'flight'; i++) {
     advance(s, world);
     if (i % 3 === 2 || s.status !== 'flight') points.push({ x: s.x, y: s.y });

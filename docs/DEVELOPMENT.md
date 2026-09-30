@@ -56,3 +56,9 @@ checks out its exact SHA. It does not rely on a new workflow firing from the bot
 push. Artifact names and evidence files contain that SHA. The run's original event
 SHA can be the ZIP-upload commit; consult the candidate SHA in its summary.
 No force push, workflow-scope workaround, or personal token is required.
+
+`browser-smoke.mjs` includes the Workshop touch/library regression. To use an
+already installed browser or a different local server, set
+`ORBIT_BROWSER_EXECUTABLE` and `ORBIT_BROWSER_URL`; CI uses their defaults.
+Custom level data lives in `workshop.js`, apart from normal progress. Do not
+replace shared physics with a special prediction approximation for Workshop.

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-30 — Local Workshop candidate
+
+Replaced Daily Orbit with a touch level editor and local library. Added arena
+fit-to-view dimensions, global/per-planet gravity, launch speed, instant respawn,
+time limit, planet style/radius and exit radius. Saved levels retain configuration
+and geometry; drafts autosave separately, with bounded undo and confirmed deletion
+or draft replacement. Custom play shares authoritative physics and cannot change
+normal progression. Local data/physics and three-size browser regression pass;
+new Android/CI and physical-phone acceptance await owner upload.
+
 ## 2026-09-30 — Space arcade UI polish candidate
 
 Unified menus around a navy orbital backdrop, crisp vector icons, mint flight

@@ -1,5 +1,6 @@
 // Run after installing pinned Playwright; CI saves real phone-sized screenshots.
 import { chromium } from 'playwright';
+import { workshopSmoke } from './workshop-smoke.mjs';
 import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
 const browser = await chromium.launch({ headless: true, executablePath: process.env.ORBIT_BROWSER_EXECUTABLE || undefined });
@@ -16,7 +17,7 @@ try {
       assert.deepEqual(broken, [], `Broken images at ${viewport.width}px`);
       assert.deepEqual(failedAssets, [], `Failed art requests at ${viewport.width}px`);
     };
-    await page.goto('http://127.0.0.1:8080');
+    await page.goto(process.env.ORBIT_BROWSER_URL || 'http://127.0.0.1:8080');
     await page.locator('#play').waitFor();
     await artLoaded();
     for (const id of ['play', 'hangar', 'settings', 'help']) {
@@ -69,6 +70,7 @@ try {
     await page.locator('#pause').click(); await page.locator('#quit').click(); await page.locator('#resultHome').click();
     await page.locator('#hangar').click(); await page.locator('#hangarBack').click();
     await page.locator('#help').click(); await page.locator('#helpBack').click();
+    await workshopSmoke(page, viewport);
     await artLoaded();
     assert.deepEqual(errors, [], `Browser errors at ${viewport.width}px`);
     await context.close();

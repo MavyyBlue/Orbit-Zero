@@ -36,8 +36,7 @@ platform APIs. Fixed-step determinism is tested within the JS runtime; cross-eng
 bitwise equality is not claimed.
 
 The crash state stops live physics immediately, renders a brief impact effect,
-then opens the result. Pause/background stops that timer. The hangar's inline SVG
-icons and live Canvas ship both derive from `SHIP_OUTLINES` in `web/save.js`.
+then opens the result. Pause/background stops that timer. The live Canvas ship derives from `SHIP_OUTLINES` in `web/save.js`; the hangar uses the supplied illustrated portraits.
 
 Rendering caps DPR at 2 and trail length at 110. Long frames cap accumulated wall
 time at 100 ms, slowing simulation rather than skipping simulation steps. This
@@ -76,3 +75,28 @@ button is disabled until Mavyy chooses a platform and authorizes a later slice.
 - Android local WebView assets: https://developer.android.com/develop/ui/views/layout/webapps/load-local-content
 - AGP 8.9 / Gradle 8.11.1 compatibility: https://developer.android.com/build/releases/agp-8-9-0-release-notes
 - GitHub token-trigger behavior: https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow
+
+## Local Workshop authority
+
+`workshop.js` owns version-1 level documents, bounded sanitization, conversion
+to simulation worlds and the separate `orbit-zero.workshop.v1` library. Normal
+progress retains its existing version-1 key and legacy daily history; Daily is
+no longer exposed as a playable mode. Custom scores never enter normal rewards.
+`workshop-ui.js` owns touch editing, configuration and library interactions.
+`game.js` runs custom flights and respawn/result transitions. All custom prediction
+and flight call the same `advance`; world start, bounds and duration override only
+explicit custom values. Production defaults and generation remain unchanged.
+
+Level geometry uses normalized coordinates; resizing preserves relative positions
+but radii stay in world units. Global and individual planet multipliers scale the
+same authoritative mass. Speed scales initial velocity, not the simulation clock.
+Camera zoom fits the full arena and changes with config/aiming panel size; it never
+changes physics. A minimum visible ship size is cosmetic; collision radius remains
+four world units. Config sliders and selection labels show actual stored values.
+
+The library is local-only, bounded to 30 entries, 12 planets and 24 stars per level.
+Draft persistence is separate from named Save. Failed storage writes do not claim
+a saved entry or apply a deletion. Overwrites retain IDs; copies receive new IDs.
+Unsaved-draft replacement and deletion require in-app confirmation. Spawn/exit
+overlap is checked before play; no automatic proof of solvability is promised for
+handmade levels. No remote workshop, accounts, sharing or backend is implemented.

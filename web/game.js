@@ -1,7 +1,8 @@
-import { W, H, DT, START, GRAVITY_REACH, encounter, launchVector, createFlight, advance, predict, dailySeed, rng } from './simulation.js';
+import { W, H, DT, START, GRAVITY_REACH, encounter, launchVector, createFlight, advance, predict, rng } from './simulation.js';
 import { loadSave, writeSave, SKINS, SHIP_OUTLINES, buySkin, roomFor, setRoomColor, buyDecor } from './save.js';
 import { DECOR } from './decor.js';
 import { art, icon, interiorMarkup } from './ui-art.js';
+import { Workshop } from './workshop-ui.js';
 import { Sound } from './audio.js';
 const $ = id => document.getElementById(id), canvas = $('space'), ctx = canvas.getContext('2d');
 let storage; try { storage = window.localStorage; } catch { storage = null; }
@@ -9,7 +10,8 @@ const loaded = loadSave(storage), save = loaded.save, sound = new Sound(save.set
 let phase = 'home', previous = 'aim', mode = 'voyage', seed = 1, sector = 1, total = 0, shards = 0, nears = 0, gates = 0;
 let world = encounter(1), flight = null, vector = null, drag = null, trail = [], particles = [], preview = null;
 let clock = 0, accumulator = 0, toastUntil = 0, transition = 0, impactAge = 0, width = 400, height = 720, scale = 1, offsetX = 0, offsetY = 0;
-let finished = false, assist = false, dailyKey = '', bestBefore = 0, settingsOrigin = 'home', activeRoomId = 'ion';
+let workshop = null, customLevel = null, editorPointer = null;
+let finished = false, assist = false, bestBefore = 0, settingsOrigin = 'home', activeRoomId = 'ion';
 const starRng = rng(9201), stars = Array.from({ length: 95 }, () => ({ x: starRng() * W, y: starRng() * H, r: starRng() * 1.1 + .25, a: starRng() * .45 + .2 }));
 function persist() { $('saveWarning').hidden = writeSave(storage, save); }
 $('saveWarning').hidden = loaded.available;
@@ -18,35 +20,57 @@ applySettings();
 function resize() {
   const rect = canvas.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
   width = rect.width; height = rect.height; canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
-  scale = Math.min(width / W, height / H); offsetX = (width - W * scale) / 2; offsetY = (height - H * scale) / 2;
+  const custom = mode === 'custom', ww = custom ? world.width : W, wh = custom ? world.height : H;
+  const editorView = phase === 'editor' ? workshop?.viewport(height) : null;
+  const top = editorView?.top ?? (custom ? 100 : 0);
+  const available = editorView?.height ?? (custom ? Math.max(80, height - top - (phase === 'aim' ? (assist ? 270 : 110) : 30)) : height);
+  scale = Math.min((width - (custom ? 24 : 0)) / ww, available / wh); offsetX = (width - ww * scale) / 2; offsetY = top + (available - wh * scale) / 2;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 new ResizeObserver(resize).observe(canvas);
 function screens(home = false, panel = false) { $('home').hidden = !home; $('panel').hidden = !panel; $('hud').hidden = home || panel; $('aimControls').hidden = phase !== 'aim'; }
 function toast(text) { $('toast').textContent = text; toastUntil = performance.now() + 1600; }
-function updateHud() { $('sectorLabel').textContent = `${mode === 'daily' ? 'DAILY' : 'SECTOR'} ${String(sector).padStart(2, '0')} / ${mode === 'endless' ? '∞' : '12'}`; $('score').textContent = (total + (flight?.score || 0)).toLocaleString(); $('combo').textContent = `×${flight?.combo || 1}`; }
+function updateHud() { $('sectorLabel').textContent = mode === 'custom' ? 'CUSTOM · SANDBOX' : `SECTOR ${String(sector).padStart(2, '0')} / ${mode === 'endless' ? '∞' : '12'}`; $('score').textContent = (total + (flight?.score || 0)).toLocaleString(); $('combo').textContent = `×${flight?.combo || 1}`; }
 function home() {
+  workshop?.hide(); mode = 'voyage'; $('app').setAttribute('data-custom', 'false');
   phase = 'home'; flight = null; drag = null; preview = null; vector = null; particles = []; trail = [];
   world = encounter(319, 2, 'voyage'); $('notice').textContent = ''; $('toast').textContent = '';
-  $('homeBest').textContent = save.best.toLocaleString(); screens(true);
+  $('homeBest').textContent = save.best.toLocaleString(); screens(true); resize();
+}
+function openWorkshop() {
+  phase = 'editor'; mode = 'custom'; flight = null; vector = null; preview = null; drag = null; trail = []; particles = []; editorPointer = null;
+  $('app').setAttribute('data-custom', 'true'); $('notice').textContent = ''; $('toast').textContent = ''; screens(); $('hud').hidden = true;
+  workshop ||= new Workshop($('workshopUI'), storage, { onChange: w => { world = w; resize(); }, onResize: resize, onExit: home, onPlay: (w, d) => { world = w; customLevel = d; sound.unlock(); restartCustom(); } });
+  workshop.open(); resize();
+}
+function restartCustom() {
+  finished = false; total = 0; shards = 0; nears = 0; gates = 0; sector = 1; flight = null; vector = null; preview = null; drag = null; trail = []; particles = []; accumulator = 0;
+  phase = 'aim'; $('notice').textContent = 'CUSTOM ORBIT'; $('toast').textContent = ''; screens(); $('assist').hidden = !assist;
+  $('angle').min = '-180'; $('angle').max = '180'; if (assist) aimFromControls(); updateHud(); resize();
+}
+function customFinish(victory, reason) {
+  if (finished) return; finished = true; phase = 'result'; $('notice').textContent = ''; $('toast').textContent = '';
+  showPanel(`<span class="eyebrow">CUSTOM ORBIT · SANDBOX</span><h2>${victory ? 'Orbit cleared!' : reason}</h2><div class="statgrid"><div><strong>${flight?.score || 0}</strong><small>Custom score</small></div><div><strong>${flight?.collected.length || 0} / ${world.pickups.length}</strong><small>Stars</small></div></div><p>No stardust or normal records change in Workshop. Keep tuning your line.</p><button class="primary" id="customRetry">Retry level ↗</button><button class="back" id="customEdit">Back to editor</button><button class="back" id="customHome">Return to dock</button>`);
+  $('customRetry').onclick = restartCustom; $('customEdit').onclick = openWorkshop; $('customHome').onclick = home;
 }
 function start(which) {
-  sound.unlock(); mode = which; dailyKey = new Date().toISOString().slice(0, 10);
-  seed = which === 'daily' ? dailySeed() : crypto.getRandomValues(new Uint32Array(1))[0];
+  workshop?.hide(); $('angle').min = '-75'; $('angle').max = '75'; $('angle').value = Math.max(-75, Math.min(75, Number($('angle').value))); $('app').setAttribute('data-custom', 'false');
+  sound.unlock(); mode = which;
+  seed = crypto.getRandomValues(new Uint32Array(1))[0];
   sector = 1; total = 0; shards = 0; nears = 0; gates = 0; finished = false; bestBefore = save.best; newSector();
 }
 function newSector() {
   world = encounter(seed, sector, mode); flight = null; vector = null; preview = null; drag = null; trail = []; particles = []; accumulator = 0;
   phase = 'aim'; $('notice').textContent = world.label; $('toast').textContent = ''; screens();
-  $('assist').hidden = !assist; if (assist) aimFromControls(); updateHud();
+  $('assist').hidden = !assist; if (assist) aimFromControls(); updateHud(); resize();
 }
 function launch() {
   if (phase !== 'aim' || !vector) return;
-  sound.unlock(); flight = createFlight(vector); phase = 'flight'; preview = null; drag = null; accumulator = 0;
-  $('notice').textContent = ''; screens(); sound.cue('launch');
+  sound.unlock(); flight = createFlight(vector, world); phase = 'flight'; preview = null; drag = null; accumulator = 0;
+  $('notice').textContent = ''; screens(); resize(); sound.cue('launch');
 }
 function aimFromControls() {
-  const a = Number($('angle').value) * Math.PI / 180, speed = Number($('power').value) / 100 * 368;
+  const a = Number($('angle').value) * Math.PI / 180, speed = Number($('power').value) / 100 * 368 * (world.speed || 1);
   vector = { vx: Math.sin(a) * speed, vy: -Math.cos(a) * speed }; preview = predict(vector, world);
 }
 function pause() {
@@ -55,21 +79,21 @@ function pause() {
   showPanel(`<span class="eyebrow">TAKE A BREATH</span><h2>Orbit on hold.</h2><p>Your ship will wait.</p><button class="primary" id="resume">Resume flight ↗</button><button class="back" id="pauseSettings">Settings</button><button class="back" id="quit">End run</button>`);
   $('resume').onclick = resume; $('pauseSettings').onclick = () => settings('pause'); $('quit').onclick = () => finish(false, 'Run ended');
 }
-function resume() { sound.unlock(); phase = previous; accumulator = 0; if (phase === 'aim' && assist) aimFromControls(); screens(); }
+function resume() { sound.unlock(); phase = previous; accumulator = 0; if (phase === 'aim' && assist) aimFromControls(); screens(); resize(); }
 function showPanel(html, view = '') { $('panel').setAttribute('data-view', view); $('panelBody').innerHTML = html; screens(false, true); $('aimControls').hidden = true; $('panelBody').scrollTop = 0; const heading = $('panelBody').querySelector?.('h2'); heading?.setAttribute?.('tabindex', '-1'); heading?.focus?.({ preventScroll: true }); }
 function burst(x, y, color, count = 20) {
   if (save.settings.reduced) return;
   for (let i = 0; i < count; i++) { const a = Math.random() * Math.PI * 2, v = 15 + Math.random() * 85; particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: .8, color }); }
 }
 function finish(victory, reason) {
+  if (mode === 'custom') { customFinish(victory, reason); return; }
   if (finished) return; finished = true;
   const score = total + (flight?.score || 0);
   if (flight) { shards += flight.collected.length; nears += flight.near.length; }
   save.runs++; save.gates += gates; save.near += nears; save.shards += shards; if (victory) save.victories++;
   save.best = Math.max(save.best, score);
-  if (mode === 'daily') { save.daily[dailyKey] = Math.max(save.daily[dailyKey] || 0, score); const keys = Object.keys(save.daily).sort(); while (keys.length > 32) delete save.daily[keys.shift()]; }
   persist(); phase = 'result'; $('notice').textContent = ''; $('toast').textContent = '';
-  showPanel(`<span class="eyebrow">${victory ? 'VOYAGE COMPLETE' : score > bestBefore ? 'NEW PERSONAL BEST' : 'EVERY ARC TEACHES YOU'}</span><h2>${victory ? 'You found the line.' : reason}</h2><div class="statgrid"><div><strong>${score.toLocaleString()}</strong><small>Score</small></div><div><strong>${gates}</strong><small>Gates reached</small></div><div><strong>${nears}</strong><small>Near misses</small></div><div><strong>+${shards}</strong><small>Stardust</small></div></div><p>${victory ? 'Twelve sectors crossed. A new orbit is always waiting.' : 'A little more pull. A slightly different angle. One more launch.'}</p><button class="primary" id="retry">${mode === 'daily' ? 'Retry today’s orbit' : 'Launch again'} ↗</button><button class="back" id="resultHome">Return to dock</button>`);
+  showPanel(`<span class="eyebrow">${victory ? 'VOYAGE COMPLETE' : score > bestBefore ? 'NEW PERSONAL BEST' : 'EVERY ARC TEACHES YOU'}</span><h2>${victory ? 'You found the line.' : reason}</h2><div class="statgrid"><div><strong>${score.toLocaleString()}</strong><small>Score</small></div><div><strong>${gates}</strong><small>Gates reached</small></div><div><strong>${nears}</strong><small>Near misses</small></div><div><strong>+${shards}</strong><small>Stardust</small></div></div><p>${victory ? 'Twelve sectors crossed. A new orbit is always waiting.' : 'A little more pull. A slightly different angle. One more launch.'}</p><button class="primary" id="retry">Launch again ↗</button><button class="back" id="resultHome">Return to dock</button>`);
   $('retry').onclick = () => start(mode); $('resultHome').onclick = home;
 }
 function settings(from = 'home') {
@@ -130,22 +154,23 @@ function support() {
 }
 function help() {
   phase = 'help';
-  showPanel(`<span class="eyebrow">FLIGHT SCHOOL · 30 SECONDS</span><h2>Let gravity help.</h2><div class="help-card"><img src="${art('ui/illustrations/illustration_aim')}" alt="A ship following a drag arc"><p><b>1. Pull back.</b> Touch near the little ship and drag opposite your intended direction. More pull means more speed.</p></div><p><b>2. Read the line.</b> The dotted arc shows only the first 2.1 seconds. It uses the exact same physics as your flight. Beyond the dots, you’re on your own.</p><p><b>3. Release.</b> Collect stars hidden beyond the planets’ direct sightlines by curving around their gravity. Skim a planet and survive to earn a near-miss multiplier. Enter the bright ring to reach the next sector.</p><p>Hit a planet, leave the field, or drift for 14 seconds and the run ends. Voyage and Daily have 12 sectors; Endless keeps going. Daily uses one shared offline UTC-date seed, with no leaderboard.</p><p>Keyboard: arrows adjust angle and power, Space launches, Escape pauses. Button aiming is available below the ship.</p><button class="primary" id="helpBack">Got it ↗</button>`);
+  showPanel(`<span class="eyebrow">FLIGHT SCHOOL · 30 SECONDS</span><h2>Let gravity help.</h2><div class="help-card"><img src="${art('ui/illustrations/illustration_aim')}" alt="A ship following a drag arc"><p><b>1. Pull back.</b> Touch near the little ship and drag opposite your intended direction. More pull means more speed.</p></div><p><b>2. Read the line.</b> The dotted arc shows only the first 2.1 seconds. It uses the exact same physics as your flight. Beyond the dots, you’re on your own.</p><p><b>3. Release.</b> Collect stars hidden beyond the planets’ direct sightlines by curving around their gravity. Skim a planet and survive to earn a near-miss multiplier. Enter the bright ring to reach the next sector.</p><p>Hit a planet, leave the field, or drift for 14 seconds and the run ends. Voyage has 12 sectors; Endless keeps going. Workshop lets you build and save local custom levels with their own gravity, speed and respawn settings. Custom play earns no stardust or normal records.</p><p>Keyboard: arrows adjust angle and power, Space launches, Escape pauses. Button aiming is available below the ship.</p><button class="primary" id="helpBack">Got it ↗</button>`);
   $('helpBack').onclick = home;
 }
-$('play').onclick = () => start('voyage'); $('endless').onclick = () => start('endless'); $('daily').onclick = () => start('daily');
+$('play').onclick = () => start('voyage'); $('endless').onclick = () => start('endless'); $('workshop').onclick = openWorkshop;
 $('pause').onclick = pause; $('settings').onclick = () => settings(); $('hangar').onclick = hangar; $('help').onclick = help;
 $('donate').onclick = support; $('donateInfo').onclick = supportInfo;
-$('aimToggle').onclick = () => { assist = !assist; $('assist').hidden = !assist; $('aimToggle').textContent = assist ? 'Hide button aiming' : 'Button aiming'; if (assist) aimFromControls(); else { vector = null; preview = null; } };
+$('aimToggle').onclick = () => { assist = !assist; $('assist').hidden = !assist; $('aimToggle').textContent = assist ? 'Hide button aiming' : 'Button aiming'; if (assist) aimFromControls(); else { vector = null; preview = null; } resize(); };
 $('angle').oninput = $('power').oninput = aimFromControls; $('launchButton').onclick = launch;
 function point(e) { const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left - offsetX) / scale, y: (e.clientY - r.top - offsetY) / scale }; }
 canvas.onpointerdown = e => {
-  if (phase !== 'aim' || drag) return; const p = point(e); if (Math.hypot(p.x - START.x, p.y - START.y) > 95) return;
+  if (phase === 'editor') { if (editorPointer !== null) return; editorPointer = e.pointerId; canvas.setPointerCapture(e.pointerId); workshop.pointerDown(point(e), scale); return; }
+  if (phase !== 'aim' || drag) return; const p = point(e), origin = world.start || START; if (Math.hypot(p.x - origin.x, p.y - origin.y) > (mode === 'custom' ? Math.max(95, 44 / scale) : 95)) return;
   sound.unlock(); drag = { ...p, id: e.pointerId }; canvas.setPointerCapture(e.pointerId); vector = null; preview = null;
 };
-canvas.onpointermove = e => { if (!drag || drag.id !== e.pointerId || phase !== 'aim') return; const p = point(e); vector = launchVector(p.x - drag.x, p.y - drag.y); preview = vector ? predict(vector, world) : null; };
-canvas.onpointerup = e => { if (!drag || drag.id !== e.pointerId) return; drag = null; launch(); };
-canvas.onpointercancel = () => { drag = null; vector = null; preview = null; };
+canvas.onpointermove = e => { if (phase === 'editor' && editorPointer === e.pointerId) { workshop.pointerMove(point(e)); return; } if (!drag || drag.id !== e.pointerId || phase !== 'aim') return; const p = point(e); vector = launchVector((p.x - drag.x) * (mode === 'custom' ? scale / .55 : 1), (p.y - drag.y) * (mode === 'custom' ? scale / .55 : 1)); if (vector && mode === 'custom') { vector.vx *= world.speed; vector.vy *= world.speed; } preview = vector ? predict(vector, world) : null; };
+canvas.onpointerup = e => { if (phase === 'editor' && editorPointer === e.pointerId) { editorPointer = null; workshop.pointerUp(); return; } if (!drag || drag.id !== e.pointerId) return; drag = null; launch(); };
+canvas.onpointercancel = () => { if (phase === 'editor') { editorPointer = null; workshop.pointerUp(true); return; } drag = null; vector = null; preview = null; };
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { if (phase === 'pause') resume(); else pause(); return; }
   if (phase !== 'aim' || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(e.key) || e.target.tagName === 'INPUT') return;
@@ -159,11 +184,13 @@ document.addEventListener('keydown', e => {
 window.orbitPause = () => { pause(); sound.suspend(); };
 window.orbitBack = () => {
   if (phase === 'home') return false;
-  if (phase === 'pause') resume();
+  if (phase === 'editor') { if (workshop.libraryOpen) workshop.open(); else home(); }
+  else if (phase === 'pause') resume();
   else if (phase === 'settings' && settingsOrigin === 'pause') { phase = previous; pause(); }
   else if (phase === 'shop') interior(activeRoomId);
   else if (phase === 'interior') hangar();
   else if (phase === 'supportInfo') support();
+  else if (phase === 'result' && mode === 'custom') openWorkshop();
   else if (['help', 'hangar', 'settings', 'result', 'donate'].includes(phase)) home();
   else pause();
   return true;
@@ -180,15 +207,16 @@ function tick(dt) {
     updateHud();
     if (flight.status === 'gate') {
       burst(flight.x, flight.y, '#9cf5df', 40); gates++;
-      if (mode !== 'endless' && sector >= 12) finish(true, '');
+      if (mode === 'custom') finish(true, '');
+      else if (mode !== 'endless' && sector >= 12) finish(true, '');
       else { total += flight.score; shards += flight.collected.length; nears += flight.near.length; flight = null; phase = 'transit'; transition = .65; toast('GATE CLEARED'); }
     } else if (flight.status === 'crash') {
       impactAge = 0; phase = 'impact'; accumulator = 0;
       burst(flight.x, flight.y, '#ffbd82', 12); toast('BOOP!');
-    } else if (flight.status !== 'flight') { finish(false, 'Lost to the quiet.'); }
+    } else if (flight.status !== 'flight') { if (mode === 'custom' && customLevel.instantRespawn) { restartCustom(); toast('READY AGAIN'); } else finish(false, 'Lost to the quiet.'); }
   } else if (phase === 'impact') {
     impactAge += dt;
-    if (impactAge >= (save.settings.reduced ? .28 : .78)) finish(false, 'A beautiful collision.');
+    if (impactAge >= (mode === 'custom' && customLevel.instantRespawn ? .18 : save.settings.reduced ? .28 : .78)) { if (mode === 'custom' && customLevel.instantRespawn) { restartCustom(); toast('READY AGAIN'); } else finish(false, 'A beautiful collision.'); }
   } else if (phase === 'transit') { transition -= dt; if (transition <= 0) { sector++; newSector(); } }
 }
 function circle(x, y, r, fill, stroke, line = 1) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = line; ctx.stroke(); } }
@@ -223,7 +251,7 @@ function drawPlanet(p, t) {
 }
 function drawShip(p, velocity, style, t) {
   const angle = velocity ? Math.atan2(velocity.vy, velocity.vx) + Math.PI / 2 : 0;
-  ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(angle);
+  ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(angle); if (mode === 'custom') ctx.scale(Math.max(1, .7 / scale), Math.max(1, .7 / scale));
   circle(0, 0, 15, style.color + '17');
   if (velocity && !save.settings.reduced) {
     const tail = 8 + Math.sin(t * .025) * 2;
@@ -253,8 +281,8 @@ function drawImpact(p, age) {
 }
 function render(t, dt) {
   ctx.clearRect(0, 0, width, height); ctx.fillStyle = '#080e1c'; ctx.fillRect(0, 0, width, height); ctx.save(); ctx.translate(offsetX, offsetY); ctx.scale(scale, scale);
-  const backdrop = ctx.createRadialGradient(295, 310, 0, 230, 350, 370); backdrop.addColorStop(0, '#15243b'); backdrop.addColorStop(1, '#080e1c'); ctx.fillStyle = backdrop; ctx.fillRect(0, 0, W, H);
-  for (const s of stars) { ctx.globalAlpha = s.a; circle(s.x, s.y, s.r, '#adc0e5'); } ctx.globalAlpha = 1;
+  const backdrop = ctx.createRadialGradient(295, 310, 0, 230, 350, 370); backdrop.addColorStop(0, '#15243b'); backdrop.addColorStop(1, '#080e1c'); ctx.fillStyle = backdrop; ctx.fillRect(0, 0, world.width || W, world.height || H);
+  for (const s of stars) { ctx.globalAlpha = s.a; circle(s.x * ((world.width || W) / W), s.y * ((world.height || H) / H), s.r / Math.min(1, scale), '#adc0e5'); } ctx.globalAlpha = 1;
   const displayWorld = world;
   for (const p of displayWorld.planets) drawPlanet(p, t);
   for (const p of displayWorld.hazards) { circle(p.x, p.y, p.radius, '#444157', '#b5a4a4'); ctx.beginPath(); ctx.moveTo(p.x - 4, p.y - 6); ctx.lineTo(p.x + 5, p.y + 5); ctx.strokeStyle = '#80758b'; ctx.stroke(); }
@@ -265,11 +293,12 @@ function render(t, dt) {
   const style = SKINS.find(s => s.id === save.skin) || SKINS[0], color = style.color;
   if (!save.settings.reduced && trail.length > 1) { for (let i = 1; i < trail.length; i++) { ctx.globalAlpha = i / trail.length * .6; ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(trail[i - 1].x, trail[i - 1].y); ctx.lineTo(trail[i].x, trail[i].y); ctx.stroke(); } ctx.globalAlpha = 1; }
   if (preview && phase === 'aim') { preview.points.forEach((p, i) => { ctx.globalAlpha = 1 - i / preview.points.length * .75; circle(p.x, p.y, 1.6, '#d7fff5'); }); ctx.globalAlpha = 1; }
-  if (phase === 'aim' || phase === 'home' || (flight && phase !== 'impact')) {
-    const p = flight || START;
+  if (phase === 'editor' || phase === 'aim' || phase === 'home' || (flight && phase !== 'impact')) {
+    const p = flight || world.start || START;
     drawShip(p, flight || vector, style, t);
     if (phase === 'aim') { circle(p.x, p.y, 25, null, color + '55'); if (vector) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - vector.vx / 3.2, p.y - vector.vy / 3.2); ctx.strokeStyle = color + '77'; ctx.setLineDash([3, 5]); ctx.stroke(); ctx.setLineDash([]); } }
   }
+  if (phase === 'editor') workshop?.drawOverlay(ctx, scale);
   if (phase === 'impact' && flight) drawImpact(flight, impactAge);
   for (const p of particles) { if (!['pause', 'settings'].includes(phase)) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; } ctx.globalAlpha = Math.max(0, p.life); circle(p.x, p.y, 2, p.color); } ctx.globalAlpha = 1; particles = particles.filter(p => p.life > 0); ctx.restore();
 }

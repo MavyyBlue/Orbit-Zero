@@ -22,7 +22,10 @@ a brief spark and tiny mushroom cloud play before the result screen.
 - **Voyage:** twelve generated sectors and an ending; three planets in sectors 1–4,
   four in 5–8, five in 9–12.
 - **Endless:** keep crossing sectors until the run ends; each sector has three to five planets.
-- **Daily orbit:** repeatable offline UTC-date seed, twelve sectors, local best.
+- **Workshop:** touch level creator replacing Daily Orbit. Move/add planets and stars,
+  position launch/exit, configure arena dimensions, gravity, speed, time limit and
+  instant respawn. Save up to 30 levels locally with all settings; test them without
+  changing normal records or stardust. See [Workshop guide](docs/WORKSHOP.md).
 - **Hangar:** five small ship silhouettes with previews beside each name, unlocked with collected stars
   (banked as stardust after a run); four achievement badges.
 - **Ship interiors:** five layered cosmetic rooms with personal wall color and

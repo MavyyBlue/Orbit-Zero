@@ -1,0 +1,34 @@
+/* Touch editor overlays the same authoritative flight field. */
+#workshopUI { position:absolute; inset:0; z-index:10; pointer-events:none; }
+#workshopUI button,#workshopUI input,#workshopUI select,#workshopUI summary { pointer-events:auto; }
+.workshop-top { position:absolute; top:max(12px,env(safe-area-inset-top)); left:12px; right:12px; display:flex; align-items:center; gap:12px; background:#14223ef5; border:1px solid #405678; border-radius:18px; padding:8px; pointer-events:auto; }
+.workshop-top>div { flex:1; min-width:0; } .workshop-top strong { display:block; font-size:20px; } .workshop-top small { display:block; font-size:9px; color:#a9c8dc; margin-top:3px; }
+.workshop-top button { width:44px; min-height:44px; padding:9px; }
+.workshop-tools { position:absolute; top:89px; left:12px; right:12px; display:flex; gap:6px; overflow-x:auto; pointer-events:auto; padding-bottom:4px; }
+.workshop-tools button { white-space:nowrap; min-height:44px; border-radius:12px; padding:8px 11px; font-size:11px; }
+.workshop-tools [aria-pressed=true] { color:#112b36; background:#98f4df; border-color:#c2ffec; }
+.workshop-guide { position:absolute; top:140px; left:20px; right:20px; color:#e2cfff; font-size:10px; text-align:center; pointer-events:none; text-shadow:0 1px 4px #000; }
+.workshop-config { position:absolute; bottom:max(80px,calc(env(safe-area-inset-bottom) + 74px)); left:12px; right:12px; background:#13223bf5; border:1px solid #698baf; border-radius:18px; box-shadow:0 8px 24px #0006; pointer-events:auto; max-height:45%; overflow:auto; }
+.workshop-config summary { position:sticky; top:0; list-style:none; display:flex; justify-content:space-between; padding:16px; min-height:54px; color:#ccffee; font-size:13px; font-weight:800; cursor:pointer; background:#1e3451; }
+.workshop-config summary::-webkit-details-marker { display:none; } .workshop-config[open] summary span { transform:rotate(180deg); }
+.workshop-fields { padding:14px 16px; display:grid; gap:16px; }
+.workshop-fields label { font-size:12px; color:#cde1ef; display:block; }
+.workshop-fields input[type=text],.workshop-fields input:not([type]),.workshop-fields select { display:block; width:100%; min-height:44px; border-radius:10px; background:#09152b; color:#f0f7ff; border:1px solid #67829b; padding:9px; margin-top:7px; }
+.config-range span { display:flex; align-items:center; justify-content:space-between; gap:8px; } .config-range output { color:#adffdf; font-variant-numeric:tabular-nums; }
+.config-range input[type=range] { width:100%; min-height:44px; margin:0; }
+.respawn-row { display:flex!important; align-items:center; gap:12px; justify-content:space-between; } .respawn-row small { display:block; margin-top:5px; font-size:10px; color:#a9bbcf; } .respawn-row input { width:28px; height:28px; accent-color:#9cf5df; }
+.object-settings { padding-top:15px; border-top:1px solid #536a88; display:grid; gap:14px; color:#cbb5ff; font-size:12px; }
+.workshop-tip { font-size:11px!important; line-height:1.55!important; color:#adc1d5!important; margin:0; }
+.danger { color:#ffc7c5; border-color:#ba697b; background:#42293d; }
+.workshop-bottom { position:absolute; bottom:max(14px,env(safe-area-inset-bottom)); left:12px; right:12px; display:grid; grid-template-columns:1fr 1fr 1.6fr; gap:8px; pointer-events:auto; }
+.workshop-bottom button { min-height:52px; padding:10px; font-size:13px; border-radius:14px; } .workshop-bottom .primary { min-height:52px; font-size:14px; }
+.workshop-library { position:absolute; inset:0; overflow:auto; background:#090f24; padding:28px 20px; pointer-events:auto; }
+.workshop-library h2 { font-size:30px; margin-bottom:0; } .workshop-library p { font-size:12px; line-height:1.65; color:#b4c5db; }
+.library-list { display:grid; gap:14px; margin:22px 0; } .library-card { border:1px solid #506585; background:#1a2942; border-radius:18px; padding:16px; display:grid; gap:9px; }
+.library-card>strong { overflow-wrap:anywhere; font-size:19px; } .library-card>small { font-size:11px; color:#b9cadf; }
+.library-card>div { display:flex; flex-wrap:wrap; gap:7px; margin-top:6px; } .library-card button { font-size:12px; padding:9px 12px; min-height:44px; } .library-card button.primary { width:auto; min-height:44px; font-size:12px; }
+.library-card [data-delete] { background:transparent; color:#e8bec9; } .library-card [data-delete] svg { display:none; }
+.library-empty,.library-message { border:1px dashed #7682b8; background:#252940; border-radius:16px; padding:18px; font-size:13px; line-height:1.6; color:#e2d3ff; }
+.library-message button { display:block; margin-top:12px; } #librarySaveCopy { width:100%; margin-bottom:18px; }
+#app[data-custom=true] #notice { top:14%; font-size:10px; }
+@media(max-height:650px) { .workshop-config { max-height:40%; } .workshop-top { top:8px; } }

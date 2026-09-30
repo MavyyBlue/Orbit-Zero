@@ -25,7 +25,7 @@ physical-phone playtest or a store-ready release.
   settings, retry, achievements, pointer cancellation and background pause.
 - ZIP validation, repeat import, workflow preservation, ownership conflicts, hash
   mismatch, symlink/traversal/workflow/Git path rejection.
-- Real-browser smoke at 360×640 and 412×915 is authored for CI; screenshots are
+- Real-browser smoke at 320×568, 360×640 and 412×915 runs locally and in CI; screenshots are
   artifacts, including home, support, interior and shop. This is distinct from
   the DOM contract test.
 
@@ -50,9 +50,24 @@ physical-phone playtest or a store-ready release.
     then force-stop/reopen to verify the save without losing previous progress.
 14. Check shop prices, one-time charges and insufficient-balance disabled states.
     No decor may alter the flight simulation.
-15. Open Support. The waving art should play unless Reduced Motion is enabled;
-    the donation control must remain disabled with no external checkout.
+15. Open Support. The transparent still art should appear; donation tiers must remain disabled with no external checkout.
 
 Known outstanding work for this revision: independent audit, exact-SHA CI run,
 phone/performance/device certification, store/release preparation. Read CURRENT_STATE
 for what was actually executed locally.
+
+## Workshop regression and acceptance
+
+Automated coverage checks level/config persistence and independent clones, schema
+corruption and bounds, library cap/update, gravity scaling, custom world bounds and
+time limit, and exact preview/live state equivalence. Real-browser coverage edits
+three sizes, places and drags with touch, tunes a selected planet, reloads stored
+levels, confirms draft replacement/deletion, exercises instant respawn, completes
+and loses a custom flight, and asserts normal progress never changes.
+
+Phone acceptance: build several different-size arenas; move/delete objects; scroll
+and collapse the fixed configuration panel; save/reopen multiple named levels and
+update one without duplication. Verify custom background pause and Android Back,
+instant-respawn aim reset, old progress after an update install, and normal
+Voyage/Endless controls. Arbitrary handmade levels may be impossible; completion
+checks are manual. Storage quota/failure and extreme zoom need device review.
