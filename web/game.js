@@ -5,6 +5,7 @@ import { art, icon, interiorMarkup } from './ui-art.js';
 import { PLANETS } from './planet-rules.js';
 import { Workshop } from './workshop-ui.js';
 import { Sound } from './audio.js';
+import { AimLock } from './aim-lock.js';
 const $ = id => document.getElementById(id), canvas = $('space'), ctx = canvas.getContext('2d');
 let storage; try { storage = window.localStorage; } catch { storage = null; }
 const loaded = loadSave(storage), save = loaded.save, sound = new Sound(save.settings);
@@ -19,6 +20,7 @@ $('saveWarning').hidden = loaded.available;
 function applySettings() { $('app').classList.toggle('contrast', save.settings.contrast); $('app').classList.toggle('reduced', save.settings.reduced); }
 applySettings();
 function resize() {
+  if (drag) { drag = null; vector = null; preview = null; updateAimHint(); }
   const rect = canvas.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
   width = rect.width; height = rect.height; canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
   const custom = mode === 'custom', ww = custom ? world.width : W, wh = custom ? world.height : H;
@@ -29,7 +31,8 @@ function resize() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 new ResizeObserver(resize).observe(canvas);
-function screens(home = false, panel = false) { $('home').hidden = !home; $('panel').hidden = !panel; $('hud').hidden = home || panel; $('aimControls').hidden = phase !== 'aim'; }
+function updateAimHint() { const text = drag?.lock.locked ? 'Aim locked · move to adjust. Release to fly.' : 'Pull back. Hold still to lock. Release to fly.'; if ($('aimHint').textContent !== text) $('aimHint').textContent = text; }
+function screens(home = false, panel = false) { updateAimHint(); $('home').hidden = !home; $('panel').hidden = !panel; $('hud').hidden = home || panel; $('aimControls').hidden = phase !== 'aim'; }
 function toast(text) { $('toast').textContent = text; toastUntil = performance.now() + 1600; }
 function updateHud() { $('sectorLabel').textContent = mode === 'custom' ? 'CUSTOM · SANDBOX' : `SECTOR ${String(sector).padStart(2, '0')} / ${mode === 'endless' ? '∞' : '12'}`; $('score').textContent = (total + (flight?.score || 0)).toLocaleString(); $('combo').textContent = `×${flight?.combo || 1}`; }
 function home() {
@@ -71,6 +74,7 @@ function launch() {
   $('notice').textContent = ''; screens(); resize(); sound.cue('launch');
 }
 function aimFromControls() {
+  drag = null; updateAimHint();
   const a = Number($('angle').value) * Math.PI / 180, speed = Number($('power').value) / 100 * 368 * (world.speed || 1);
   vector = { vx: Math.sin(a) * speed, vy: -Math.cos(a) * speed }; preview = predict(vector, world);
 }
@@ -155,23 +159,24 @@ function support() {
 }
 function help() {
   phase = 'help';
-  showPanel(`<span class="eyebrow">FLIGHT SCHOOL · 30 SECONDS</span><h2>Let gravity help.</h2><div class="help-card"><img src="${art('ui/illustrations/illustration_aim')}" alt="A ship following a drag arc"><p><b>1. Pull back.</b> Touch near the little ship and drag opposite your intended direction. More pull means more speed.</p></div><p><b>2. Read the line.</b> The dotted arc shows only the first 2.1 seconds. It uses the exact same physics as your flight. Beyond the dots, you’re on your own.</p><p><b>3. Release.</b> Collect stars hidden beyond the planets’ direct sightlines by curving around their gravity. Skim a planet and survive to earn a near-miss multiplier. Enter the bright ring to reach the next sector.</p><p>Hit a planet, leave the field, or drift for 14 seconds and the run ends. Voyage has 12 sectors; Endless keeps going. Workshop lets you build and save local custom levels with their own gravity, speed and respawn settings. Custom play earns no stardust or normal records.</p><p><b>Planet field guide:</b> Drifter · Little Nudge. Slingshot · Curved Pull. Orbiter · timed Orbit Lock and tangent release. Crusher · Violent Yank in a tight field. Repulsor · Push Away. Zero-gravity Workshop planets disable forces and capture.</p><p>Keyboard: arrows adjust angle and power, Space launches, Escape pauses. Button aiming is available below the ship.</p><button class="primary" id="helpBack">Got it ↗</button>`);
+  showPanel(`<span class="eyebrow">FLIGHT SCHOOL · 30 SECONDS</span><h2>Let gravity help.</h2><div class="help-card"><img src="${art('ui/illustrations/illustration_aim')}" alt="A ship following a drag arc"><p><b>1. Pull back.</b> Touch near the little ship and drag opposite your intended direction. More pull means more speed.</p></div><p><b>2. Settle your aim.</b> Hold still briefly to lock direction and power against tiny finger drift. Move deliberately to adjust again, then release to fly. The dotted arc shows only the first 2.1 seconds. It uses the exact same physics as your flight. Beyond the dots, you’re on your own.</p><p><b>3. Release.</b> Collect stars hidden beyond the planets’ direct sightlines by curving around their gravity. Skim a planet and survive to earn a near-miss multiplier. Enter the bright ring to reach the next sector.</p><p>Hit a planet, leave the field, or drift for 14 seconds and the run ends. Voyage has 12 sectors; Endless keeps going. Workshop lets you build and save local custom levels with their own gravity, speed and respawn settings. Custom play earns no stardust or normal records.</p><p><b>Planet field guide:</b> Drifter · Little Nudge. Slingshot · Curved Pull. Orbiter · timed Orbit Lock and tangent release. Crusher · Violent Yank in a tight field. Repulsor · Push Away. Zero-gravity Workshop planets disable forces and capture.</p><p>Keyboard: arrows adjust angle and power, Space launches, Escape pauses. Button aiming is available below the ship.</p><button class="primary" id="helpBack">Got it ↗</button>`);
   $('helpBack').onclick = home;
 }
 $('play').onclick = () => start('voyage'); $('endless').onclick = () => start('endless'); $('workshop').onclick = openWorkshop;
 $('pause').onclick = pause; $('settings').onclick = () => settings(); $('hangar').onclick = hangar; $('help').onclick = help;
 $('donate').onclick = support; $('donateInfo').onclick = supportInfo;
-$('aimToggle').onclick = () => { assist = !assist; $('assist').hidden = !assist; $('aimToggle').textContent = assist ? 'Hide button aiming' : 'Button aiming'; if (assist) aimFromControls(); else { vector = null; preview = null; } resize(); };
+$('aimToggle').onclick = () => { drag = null; updateAimHint(); assist = !assist; $('assist').hidden = !assist; $('aimToggle').textContent = assist ? 'Hide button aiming' : 'Button aiming'; if (assist) aimFromControls(); else { vector = null; preview = null; } resize(); };
 $('angle').oninput = $('power').oninput = aimFromControls; $('launchButton').onclick = launch;
 function point(e) { const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left - offsetX) / scale, y: (e.clientY - r.top - offsetY) / scale }; }
 canvas.onpointerdown = e => {
   if (phase === 'editor') { e.preventDefault(); if (editorPointer !== null) return; editorPointer = e.pointerId; canvas.setPointerCapture(e.pointerId); workshop.pointerDown(point(e), scale); return; }
   if (phase !== 'aim' || drag) return; const p = point(e), origin = world.start || START; if (Math.hypot(p.x - origin.x, p.y - origin.y) > (mode === 'custom' ? Math.max(95, 44 / scale) : 95)) return;
-  sound.unlock(); drag = { ...p, id: e.pointerId }; canvas.setPointerCapture(e.pointerId); vector = null; preview = null;
+  sound.unlock(); drag = { ...p, id: e.pointerId, lock: new AimLock(e.clientX, e.clientY, performance.now()) }; canvas.setPointerCapture(e.pointerId); vector = null; preview = null; updateAimHint();
 };
-canvas.onpointermove = e => { if (phase === 'editor' && editorPointer === e.pointerId) { workshop.pointerMove(point(e)); return; } if (!drag || drag.id !== e.pointerId || phase !== 'aim') return; const p = point(e); vector = launchVector((p.x - drag.x) * (mode === 'custom' ? scale / .55 : 1), (p.y - drag.y) * (mode === 'custom' ? scale / .55 : 1)); if (vector && mode === 'custom') { vector.vx *= world.speed; vector.vy *= world.speed; } preview = vector ? predict(vector, world) : null; };
-canvas.onpointerup = e => { if (phase === 'editor' && editorPointer === e.pointerId) { editorClick = { x: e.clientX, y: e.clientY, until: performance.now() + 600 }; editorPointer = null; workshop.pointerUp(); return; } if (!drag || drag.id !== e.pointerId) return; drag = null; launch(); };
-canvas.onpointercancel = () => { if (phase === 'editor') { editorPointer = null; workshop.pointerUp(true); return; } drag = null; vector = null; preview = null; };
+canvas.onpointermove = e => { if (phase === 'editor' && editorPointer === e.pointerId) { workshop.pointerMove(point(e)); return; } if (!drag || drag.id !== e.pointerId || phase !== 'aim') return; if (!drag.lock.move(e.clientX, e.clientY, performance.now(), !!vector)) { updateAimHint(); return; } updateAimHint(); const p = point(e); vector = launchVector((p.x - drag.x) * (mode === 'custom' ? scale / .55 : 1), (p.y - drag.y) * (mode === 'custom' ? scale / .55 : 1)); if (vector && mode === 'custom') { vector.vx *= world.speed; vector.vy *= world.speed; } preview = vector ? predict(vector, world) : null; };
+canvas.onpointerup = e => { if (phase === 'editor' && editorPointer === e.pointerId) { editorClick = { x: e.clientX, y: e.clientY, until: performance.now() + 600 }; editorPointer = null; workshop.pointerUp(); return; } if (!drag || drag.id !== e.pointerId) return; drag = null; updateAimHint(); launch(); };
+canvas.onpointercancel = e => { if (e && (phase === 'editor' ? editorPointer !== e.pointerId : drag?.id !== e.pointerId)) return; if (phase === 'editor') { editorPointer = null; workshop.pointerUp(true); return; } drag = null; vector = null; preview = null; updateAimHint(); };
+canvas.onlostpointercapture = e => { if (drag?.id === e.pointerId || editorPointer === e.pointerId) canvas.onpointercancel(e); };
 // A touch ending on the canvas can synthesize a click on a newly opened panel.
 // Consume that gesture's click; a fresh UI pointerdown always clears the guard.
 document.addEventListener('pointerdown', e => { if (e.target !== canvas) editorClick = null; }, true);
@@ -331,6 +336,7 @@ function render(t, dt) {
 function frame(t) {
   const dt = Math.min((t - clock) / 1000 || 0, .1); clock = t;
   if (['flight', 'transit', 'impact'].includes(phase)) { accumulator += dt; while (accumulator >= DT) { accumulator -= DT; tick(DT); if (!['flight', 'transit', 'impact'].includes(phase)) { accumulator = 0; break; } } }
+  if (phase === 'aim' && drag) { drag.lock.settle(t, !!vector); updateAimHint(); }
   if (t > toastUntil) $('toast').textContent = ''; render(t, dt); requestAnimationFrame(frame);
 }
 home(); requestAnimationFrame(frame);

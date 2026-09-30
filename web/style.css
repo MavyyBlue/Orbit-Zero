@@ -26,8 +26,9 @@ h3 { font-size:20px; letter-spacing:-.5px; }
 .hud-right button { pointer-events:auto; width:48px; height:48px; background:#0c1736d9; }
 #notice { position:absolute; top:19%; width:100%; text-align:center; pointer-events:none; color:#9cf5df; font-weight:750; letter-spacing:2px; font-size:12px; }
 #toast { position:absolute; top:36%; width:100%; text-align:center; pointer-events:none; color:#ffe0ac; font-size:21px; font-weight:800; text-shadow:0 2px 20px #000; }
-#aimControls { position:absolute; bottom:max(18px,env(safe-area-inset-bottom)); left:22px; right:22px; text-align:center; }
-#aimHint { font-size:13px; color:#d6e5ee; text-shadow:0 2px 8px #030a17; }
+#aimControls { position:absolute; bottom:max(18px,env(safe-area-inset-bottom)); left:22px; right:22px; text-align:center; pointer-events:none; }
+#assist,#aimToggle { pointer-events:auto; }
+#aimHint { min-height:2.4em; font-size:13px; color:#d6e5ee; text-shadow:0 2px 8px #030a17; }
 #assist { background:#0d1935f5; padding:15px; border:1px solid #617899; border-radius:18px; box-shadow:0 8px 30px #0006; }
 #assist label { display:flex; align-items:center; justify-content:space-between; font-size:12px; margin-bottom:8px; }
 input[type=range] { width:65%; accent-color:#9cf5df; min-height:32px; }

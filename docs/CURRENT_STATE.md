@@ -1,12 +1,19 @@
 # Current state — 2026-09-30
 
 Repository: `MavyyBlue/Orbit-Zero`, branch `main`.
-Live baseline: `831ed742ce7a5bd6d82ba5985e95ba581df8db4e`.
-Baseline bootstrap run #12 succeeded:
-https://github.com/MavyyBlue/Orbit-Zero/actions/runs/36673236721.
-This five-planet revision is a source ZIP candidate awaiting owner upload.
-Its imported SHA, Android build/lint and exact-SHA CI remain pending;
-no independent Mio certification is claimed.
+Confirmed imported five-planet baseline: `c6f7940433cea0c7910cb500fe45c9ab40302927`.
+Bootstrap run #13 succeeded:
+https://github.com/MavyyBlue/Orbit-Zero/actions/runs/36680968975.
+Although the run's event SHA is the ZIP-upload commit `fda49f746b2307b833c2d189fe147c2031cfac37`,
+its validate job checked out and tested the imported SHA above. Logs confirm 33
+Node tests, five importer tests, browser smoke, Android debug build and lint.
+Mavyy accepted that update on a real phone and called it the most addictive yet.
+That is gameplay acceptance, not independent QA or broad device certification.
+The prior `831ed742` / run #12 baseline is superseded.
+
+This pass adds hold-to-lock drag aiming and syncs the baseline evidence.
+It is a new source ZIP candidate; its imported SHA and new CI/build remain
+pending owner upload. No independent Mio certification is claimed.
 
 ## What exists
 
@@ -35,7 +42,7 @@ levels are not certified solvable.
 
 ## Validation
 
-33 Node tests and five Python importer tests pass. Physics checks cover signs,
+The five-planet baseline passed 33 Node tests and five Python importer tests. Physics checks cover signs,
 cutoffs, capture without teleportation, partial/full orbits, timed release,
 zero gravity and exact preview/live state equivalence. All 12 fallback tier/count
 combinations and an additional 192 mixed-mechanic Voyage/Endless reference routes
@@ -49,18 +56,44 @@ settings, art loading, shop and flight smoke also pass without page errors.
 
 Archive integrity, manifest hashes and a clean baseline import are checked before
 delivery. Workflows are excluded from the ZIP; the existing bootstrap is retained.
-New Android build/lint, physical-phone acceptance, screen-reader review and
-upgrade-install validation await upload. Browser checks do not certify device
-performance or gameplay difficulty. Verified launches prove generated worlds
-solvable, not that every route is intuitive or equally forgiving.
+The new aim-lock candidate needs its own imported SHA, Android build/lint and
+phone acceptance. Screen-reader review, upgrade-install checks and broader device
+performance remain outstanding. Verified launches prove generated worlds solvable,
+not that every route is intuitive or equally forgiving.
+
+## Hold-to-lock aiming candidate
+
+38 Node tests and five Python importer tests pass locally, including exact
+locked-preview and first live-step equivalence, repeated relocking, continuous
+movement, wrong-pointer handling, capture loss and background pause. Real
+Chromium touch smoke also passes at 320×568, 360×640 and 412×915, covering
+normal and zoomed Workshop lock/drift/unlock/relock/release, cancellation, pause
+and normal-save isolation. Local browser: Chromium 153 software headless; the
+unchanged bootstrap retains its pinned Playwright browser installation for CI.
+
+The existing drag direction, power mapping and simulation remain unchanged while
+adjusting. After 350 ms of stillness within a 2 CSS-pixel settling region, a valid
+aim locks its exact vector and preview. Movement within 8 CSS pixels of the lock
+point is ignored; crossing that distance unlocks and resumes the existing drag
+mapping from the original touch-down point. Holding still can relock any number
+of times. Releasing launches the last accepted vector, locked or unlocked; a
+short/deadzone gesture has no aim and never locks or launches. There is no
+extra tap, hold-to-launch timer or permanent lock.
+
+An inline aim hint identifies the lock. Thresholds use screen pixels, independent
+of arena zoom. Workshop speed still scales the launch vector normally. Cancel,
+lost pointer capture and resize abandon the gesture. Pause abandons the gesture
+and lock; its existing resume behavior retains the last preview for subsequent
+adjustment or button aiming. Only the owning pointer can move/release/cancel it.
+Button/keyboard controls keep their existing behavior and clear any active drag.
 
 ## Next bounded slice
 
 Mavyy replaces repository-root `orbit-zero-source.zip`; the existing bootstrap
-imports it and builds the APK. No replacement workflow is needed.
-Yuki then records the imported SHA and run, and reviews all five mechanics on a
-phone: preview accuracy, Orbiter capture/release and pause, Crusher risk, Repulsor
-push, Workshop repeated taps/dragging/scrolling, saved settings after force-stop,
-and old progress after update. Tune readability and difficulty from that evidence
-before expanding content. Akari receives specific corrections; Mio independently
-audits the same candidate. Donation setup remains a separate future decision.
+imports it and builds the APK. No replacement workflow is needed. Record that
+new imported SHA/run after upload; never label run #13 as validation of aim lock.
+Phone-test normal quick pulls, still hold, tiny drift, deliberate unlock, repeated
+relock and release. Check Workshop zoom/speed, pointer interruption/background,
+and old progress and levels after update-installing without uninstalling.
+Preserve the accepted five-planet feel; adjust lock thresholds from phone feedback
+before expanding this slice. Donations remain disabled and offline play remains.

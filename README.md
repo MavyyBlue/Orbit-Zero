@@ -10,7 +10,8 @@ conversations were imported. Only the owner-uploaded ZIP ingestion approach is s
 
 ## Play
 
-Pull back near the little ship, then release. The dotted arc covers the first 2.1 seconds
+Pull back near the little ship. Hold still briefly to lock direction and power
+against tiny finger drift; move deliberately to adjust again. Release to launch. The dotted arc covers the first 2.1 seconds
 of flight using exactly the same fixed-step simulation. Curve around varied
 gravitational planets to collect stars tucked beyond their direct sightlines and
 reach the exit ring. Each surviving near miss raises
@@ -51,7 +52,8 @@ through GitHub's web editor. Upload the separately delivered `orbit-zero-source.
 to the repository root on `main`. The workflow validates/expands the ZIP, commits
 only owned source, then tests and builds the exact imported SHA in the same run.
 Download the debug APK artifact only after the **validate** job succeeds.
-See [mobile setup](docs/MOBILE_SETUP.md).
+Keep the existing bootstrap when replacing the source ZIP; workflow files are
+excluded. See [mobile setup](docs/MOBILE_SETUP.md).
 
 ## Development
 

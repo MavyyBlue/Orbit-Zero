@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-30 — Hold-to-lock aiming candidate and baseline sync
+
+Added a 350 ms still-hold aim lock that freezes direction, power and the exact
+preview against minor touch drift. Movement beyond 8 screen pixels unlocks for
+continued adjustment; another still hold relocks, and release launches normally.
+Existing drag mapping, shared physics, Workshop speed, saves, prices and signing
+remain. Added a readable lock hint and cancellation/pointer-ownership checks.
+
+Corrected baseline records: five-planet source imported at
+`c6f7940433cea0c7910cb500fe45c9ab40302927`, validated in bootstrap run #13
+(36680968975), with Mavyy's real-phone gameplay acceptance. The new aim-lock ZIP
+needs its own upload, exact-SHA CI/build and phone feedback. Workflows unchanged;
+donations disabled, offline/single-player scope retained.
+
 ## 2026-09-30 — Five planet mechanics candidate
 
 Added Drifter, Slingshot, Orbiter, Crusher and Repulsor with distinct field rules

@@ -19,7 +19,10 @@ Objects keep proportional positions; radii stay in world units. Global gravity
 initial velocity. Flight time limit is 5–60 seconds. Instant respawn returns to
 aiming after a failure, with a short collision beat; reaching the exit still
 shows a completion result. Button aiming supports a full 360-degree launch.
-The visible first 2.1 seconds use exactly the live physics.
+The visible first 2.1 seconds use exactly the live physics. Drag aiming locks
+direction and power after a brief still hold; tiny drift is ignored until you
+move deliberately again. Release launches, whether locked or still adjusting.
+Lock sensitivity stays consistent across arena zoom and launch-speed settings.
 
 Up to 12 planets and 24 stars are allowed. Move launch/exit away from planets
 before Test fly; overlapping start/exit blocks play with a message. The editor

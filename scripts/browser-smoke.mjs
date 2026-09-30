@@ -1,5 +1,6 @@
 // Run after installing pinned Playwright; CI saves real phone-sized screenshots.
 import { chromium } from 'playwright';
+import { aimLockSmoke } from './aim-lock-smoke.mjs';
 import { planetFlightSmoke } from './planet-flight-smoke.mjs';
 import { workshopSmoke } from './workshop-smoke.mjs';
 import assert from 'node:assert/strict';
@@ -73,6 +74,7 @@ try {
     await page.locator('#help').click(); await page.locator('#helpBack').click();
     await workshopSmoke(page, viewport);
     await planetFlightSmoke(page, viewport);
+    await aimLockSmoke(page, viewport);
     await artLoaded();
     assert.deepEqual(errors, [], `Browser errors at ${viewport.width}px`);
     await context.close();

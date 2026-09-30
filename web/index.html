@@ -15,5 +15,5 @@
 </section>
 <section id="panel" class="screen modal" hidden aria-label="Game menu"><div id="panelBody"></div></section>
 <section id="workshopUI" hidden aria-label="Level workshop"></section>
-<div id="aimControls" hidden><p id="aimHint">Pull back from the ship. Release to fly.</p><div id="assist" hidden><label>Direction <input id="angle" type="range" min="-75" max="75" value="0" aria-label="Launch angle"></label><label>Power <input id="power" type="range" min="20" max="100" value="75" aria-label="Launch power"></label><button id="launchButton">Launch ↗</button></div><button id="aimToggle" class="quiet">Button aiming</button></div>
+<div id="aimControls" hidden><p id="aimHint" role="status" aria-live="polite">Pull back. Hold still to lock. Release to fly.</p><div id="assist" hidden><label>Direction <input id="angle" type="range" min="-75" max="75" value="0" aria-label="Launch angle"></label><label>Power <input id="power" type="range" min="20" max="100" value="75" aria-label="Launch power"></label><button id="launchButton">Launch ↗</button></div><button id="aimToggle" class="quiet">Button aiming</button></div>
 <footer id="saveWarning" hidden>Saving unavailable. Progress lasts for this session.</footer></main><script type="module" src="game.js"></script></body></html>

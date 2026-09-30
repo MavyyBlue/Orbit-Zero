@@ -124,3 +124,14 @@ and the gate before returning a world. Late exits can sit on an upper orbital ar
 rather than a fixed top strip. A bounded search falls back to a verified template
 for its progression stage and body count; all twelve fallback combinations are
 tested. Existing world bounds, score/save keys and debug signing remain stable.
+
+## Drag aim stabilization
+
+`aim-lock.js` filters pointer movement in CSS screen pixels only. The current
+pointer gesture owns settling time, anchor/latest positions and lock state;
+no lock state enters saves, level documents or flight physics. `game.js` keeps
+the last accepted launch vector and its authoritative prediction while locked.
+Stillness (350 ms within 2 px) locks a valid aim; movement beyond 8 px unlocks.
+The original drag origin and launch mapping are retained, including Workshop
+speed. Release uses that exact vector. Pointer cancellation/loss, resize or
+leaving aim discard the gesture; controls clear active drag ownership.
