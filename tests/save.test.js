@@ -37,7 +37,8 @@ test('decor unlocks once, remains cosmetic, and old saves gain safe rooms', () =
   assert.equal(buyDecor(s, 'ion', 'hammock'), false, 'insufficient stardust');
   assert.equal(buyDecor(s, 'ion', 'orb_cushion'), true); assert.equal(s.shards, 200);
   assert.equal(buyDecor(s, 'ember', 'orb_cushion'), true); assert.equal(s.shards, 200, 'owned decor is not charged twice');
-  assert.equal(roomFor(s, 'ember').slots.seat, 'orb_cushion');
+  assert.equal(roomFor(s, 'ember').slots.seat, undefined, 'purchase only adds ownership');
+  assert.equal(equipDecor(s, 'ember', 'orb_cushion'), true);
   assert.equal(equipDecor(s, 'ion', 'unowned'), false);
   assert.equal(setRoomColor(s, 'ion', '#4267af'), true);
   assert.equal(setRoomColor(s, 'ion', 'url(evil)'), false);
@@ -45,8 +46,8 @@ test('decor unlocks once, remains cosmetic, and old saves gain safe rooms', () =
   assert.deepEqual(restored.decorOwned, ['orb_cushion']);
   assert.equal(restored.rooms.ion.color, '#4267af');
   assert.equal(restored.rooms.ember.slots.seat, 'orb_cushion');
-  s.rooms.ion.slots.console = 'orb_cushion'; s.rooms.ion.color = 'red';
-  assert.equal(parseSave(JSON.stringify(s)).rooms.ion.slots.console, undefined);
+  s.rooms.ion.slots.console = 'orb_cushion'; s.rooms.ion.finishes.wall.color = 'red'; s.rooms.ion.color = 'red';
+  assert.equal(parseSave(JSON.stringify(s)).rooms.ion.slots.console, undefined, 'legacy slots do not override placements');
   assert.equal(parseSave(JSON.stringify(s)).rooms.ion.color, SKINS[0].color);
 });
 

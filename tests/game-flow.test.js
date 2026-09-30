@@ -10,9 +10,10 @@ test('complete UI voyage, pause, retry, save restoration data and cosmetic/setti
   const context = new Proxy({}, { get: (_, k) => k === 'createRadialGradient' ? () => ({ addColorStop() {} }) : () => {}, set: () => true });
   function parse(html) { for (const match of html.matchAll(/<[^>]*\bid="([^"]+)"[^>]*>/g)) { const id = match[1]; if (!elements.has(id)) elements.set(id, new Element(id)); const e = elements.get(id); e.hidden = /\bhidden\b/.test(match[0]); const value = match[0].match(/value="([^"]*)"/); if (value) e.value = value[1]; } }
   class Element {
-    constructor(id) { this.id = id; this.hidden = false; this.value = ''; this.textContent = ''; this.classList = { toggle() {} }; this.style = { setProperty() {} }; }
+    constructor(id) { this.id = id; this.dataset = {}; this.hidden = false; this.value = ''; this.textContent = ''; this.classList = { toggle() {} }; this.style = { setProperty() {} }; }
     setAttribute(key, value) { this[key] = value; }
-    querySelector() { return new Element('stage'); }
+    querySelector(selector) { if (selector.startsWith('#')) return elements.get(selector.slice(1)); if (selector === '.single-decal') return null; return new Element('stage'); }
+    append() {}
     set innerHTML(s) { this.html = s; parse(s); }
     get innerHTML() { return this.html || ''; }
     getBoundingClientRect() { return { width: 400, height: 720, left: 0, top: 0 }; }
@@ -20,9 +21,9 @@ test('complete UI voyage, pause, retry, save restoration data and cosmetic/setti
     setPointerCapture() {}
   }
   parse(readFileSync(new URL('../web/index.html', import.meta.url), 'utf8'));
-  globalThis.document = { getElementById: id => { assert.ok(elements.has(id), `Missing element ${id}`); return elements.get(id); }, addEventListener: (event, f) => { listeners[event] = f; }, hidden: false };
+  globalThis.document = { getElementById: id => { assert.ok(elements.has(id), `Missing element ${id}`); return elements.get(id); }, addEventListener: (event, f) => { const old = listeners[event]; listeners[event] = old ? () => { old(); f(); } : f; }, removeEventListener() {}, createElement: () => new Element('generated'), hidden: false };
   globalThis.window = { localStorage: { getItem: k => storage.get(k), setItem: (k, v) => storage.set(k, v) } };
-  globalThis.ResizeObserver = class { constructor(f) { this.f = f; } observe() { this.f(); } };
+  globalThis.ResizeObserver = class { constructor(f) { this.f = f; } observe() { this.f(); } disconnect() {} };
   globalThis.devicePixelRatio = 1;
   globalThis.requestAnimationFrame = f => { frame = f; };
   Object.defineProperty(globalThis, 'crypto', { configurable: true, value: { getRandomValues: a => { a[0] = 57; return a; } } });
@@ -36,13 +37,15 @@ test('complete UI voyage, pause, retry, save restoration data and cosmetic/setti
   assert.doesNotMatch(el('panelBody').innerHTML, /Akari|Mio|https?:\/\//);
   click('infoHome');
   click('hangar'); assert.equal((el('panelBody').innerHTML.match(/class="ship-card(?: [^"]*)?"/g) || []).length, 5);
-  click('interior-ion'); assert.match(el('panelBody').innerHTML, /interior-stage/);
-  assert.equal((el('panelBody').innerHTML.match(/class="room-furn/g) || []).length, 4);
-  el('roomColor').value = '#4267af'; el('roomColor').oninput();
-  click('roomShop'); click('decor-orb_cushion');
+  click('interior-ion'); assert.match(el('panelBody').innerHTML, /cabin-stage/);
+  assert.equal((el('roomObjects').innerHTML.match(/data-placement=/g) || []).length, 6);
+  click('roomSurfaces'); el('finish-wall').value = '#4267af'; el('finish-wall').onchange();
+  click('roomFurniture'); click('inventoryShop'); click('inventory-orb_cushion');
+  assert.equal(JSON.parse(storage.get('orbit-zero.save.v1')).shards, 900, 'preview does not charge');
+  click('previewConfirm');
   assert.equal(JSON.parse(storage.get('orbit-zero.save.v1')).shards, 700);
   assert.equal(JSON.parse(storage.get('orbit-zero.save.v1')).rooms.ion.slots.seat, 'orb_cushion');
-  click('shopBack'); assert.match(el('panelBody').innerHTML, /orb_cushion.webp/);
+  assert.match(el('roomObjects').innerHTML, /orb_cushion.webp/);
   click('roomBack'); click('hangarBack');
   click('help'); assert.match(el('panelBody').innerHTML, /exact same physics/); click('helpBack');
   click('settings'); click('set-sound'); click('set-music'); click('set-haptics'); click('set-reduced'); click('settingsBack');

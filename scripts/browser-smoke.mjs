@@ -1,5 +1,6 @@
 // Run after installing pinned Playwright; CI saves real phone-sized screenshots.
 import { chromium } from 'playwright';
+import { roomSmoke } from './room-smoke.mjs';
 import { deadZoneSmoke } from './aim-lock-smoke.mjs';
 import { planetFlightSmoke } from './planet-flight-smoke.mjs';
 import { workshopSmoke } from './workshop-smoke.mjs';
@@ -43,18 +44,7 @@ try {
     await page.locator('#hangar').click();
     await artLoaded();
     await page.screenshot({ path: `build/screenshots/hangar-${viewport.width}.png` });
-    await page.locator('#interior-ion').click();
-    await page.locator('#room-seat').waitFor();
-    await page.locator('#roomColor').evaluate(el => { el.value = '#4267af'; el.dispatchEvent(new Event('input', { bubbles: true })); });
-    assert.equal(await page.locator('.interior-stage').evaluate(el => getComputedStyle(el).getPropertyValue('--room-color').trim()), '#4267af');
-    assert.equal(await page.locator('.interior-stage').evaluate(el => el.scrollWidth <= el.clientWidth + 1), true);
-    await artLoaded();
-    await page.screenshot({ path: `build/screenshots/interior-${viewport.width}.png` });
-    await page.locator('#roomShop').click();
-    await page.locator('#shop-filter-decal').click();
-    await artLoaded();
-    await page.screenshot({ path: `build/screenshots/shop-${viewport.width}.png` });
-    await page.locator('#shopBack').click(); await page.locator('#roomBack').click(); await page.locator('#hangarBack').click();
+    await roomSmoke(page, viewport);
     await page.locator('#settings').click();
     await page.locator('#set-sound').click(); await page.locator('#set-music').click(); await page.locator('#set-haptics').click();
     await page.locator('#settingsBack').click(); await page.reload(); await page.locator('#settings').click();

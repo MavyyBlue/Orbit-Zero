@@ -1,5 +1,6 @@
 import { DECOR } from './decor.js';
 import { DEFAULT_AIM_DEAD_ZONE, normalizeAimDeadZone } from './aim-lock.js';
+import { defaultRoom, normalizeRoom, syncLegacySlots, findPosition, placeItem } from './room-model.js';
 export const SAVE_KEY = 'orbit-zero.save.v1';
 export const freshSave = () => ({ version: 1, best: 0, runs: 0, gates: 0, near: 0, shards: 0, victories: 0, skin: 'ion', owned: ['ion'], decorOwned: [], rooms: {}, daily: {}, settings: { sound: true, music: true, haptics: true, reduced: false, contrast: false, aimDeadZone: DEFAULT_AIM_DEAD_ZONE } });
 const bounded = v => Number.isSafeInteger(v) && v >= 0 ? Math.min(v, 1000000000) : 0;
@@ -15,13 +16,7 @@ export function parseSave(raw) {
     for (const ship of SKINS) {
       const room = v.rooms?.[ship.id];
       if (!room || typeof room !== 'object') continue;
-      const color = /^#[0-9a-fA-F]{6}$/.test(room.color) ? room.color : ship.color;
-      const slots = {};
-      for (const slot of ['seat', 'console', 'plant', 'lamp', 'decal']) {
-        const item = DECOR.find(d => d.id === room.slots?.[slot] && d.slot === slot);
-        if (item && s.decorOwned.includes(item.id)) slots[slot] = item.id;
-      }
-      s.rooms[ship.id] = { color, slots };
+      s.rooms[ship.id] = normalizeRoom(ship, room, s.decorOwned);
     }
     for (const k of Object.keys(s.settings)) if (typeof s.settings[k] === 'boolean' && typeof v.settings?.[k] === 'boolean') s.settings[k] = v.settings[k];
     s.settings.aimDeadZone = normalizeAimDeadZone(v.settings?.aimDeadZone);
@@ -58,16 +53,20 @@ export function buySkin(save, id) {
 export function roomFor(save, shipId) {
   const ship = SKINS.find(s => s.id === shipId) || SKINS[0];
   save.rooms ||= {};
-  return save.rooms[ship.id] ||= { color: ship.color, slots: {} };
+  if (save.rooms[ship.id]?.roomVersion !== 2) save.rooms[ship.id] = save.rooms[ship.id] ? normalizeRoom(ship, save.rooms[ship.id], save.decorOwned) : defaultRoom(ship);
+  return save.rooms[ship.id];
 }
 export function setRoomColor(save, shipId, color) {
   if (!save.owned.includes(shipId) || !/^#[0-9a-fA-F]{6}$/.test(color)) return false;
-  roomFor(save, shipId).color = color; return true;
+  const room = roomFor(save, shipId); room.finishes.wall.color = color; syncLegacySlots(SKINS.find(s => s.id === shipId), room); return true;
 }
 export function equipDecor(save, shipId, itemId) {
   const item = DECOR.find(d => d.id === itemId);
   if (!item || !save.owned.includes(shipId) || !save.decorOwned.includes(itemId)) return false;
-  roomFor(save, shipId).slots[item.slot] = itemId; return true;
+  const ship = SKINS.find(s => s.id === shipId), room = roomFor(save, shipId);
+  if (room.placements.some(p => p.item === itemId)) return true;
+  const position = findPosition(ship, room, itemId);
+  return !!position && placeItem(ship, room, save.decorOwned, itemId, position, `equipped-${itemId}`);
 }
 export function buyDecor(save, shipId, itemId) {
   const item = DECOR.find(d => d.id === itemId);
@@ -76,5 +75,5 @@ export function buyDecor(save, shipId, itemId) {
     if (save.shards < item.price) return false;
     save.shards -= item.price; save.decorOwned.push(itemId);
   }
-  return equipDecor(save, shipId, itemId);
+  return true; // Ownership is independent of placement. No charge for moving/storing.
 }

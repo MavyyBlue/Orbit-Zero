@@ -1,0 +1,53 @@
+/* A bounded decorating dock independent of flight and Workshop. */
+#panel[data-view=interior] #panelBody{padding:0;overflow:hidden}
+.cabin-editor{height:100%;display:flex;flex-direction:column;background:#0d172b;color:#e9f3ff;overflow:hidden}
+.cabin-header{flex:none;display:flex;align-items:center;gap:10px;padding:max(8px,env(safe-area-inset-top)) 12px 8px;min-height:64px;background:#101c30;border-bottom:1px solid #40516b}
+.cabin-header>div{flex:1;min-width:0}.cabin-header strong{display:block;font-size:20px}.cabin-header small{font-size:10px;color:#b1c6d7}
+.cabin-header button{min-height:44px;padding:8px 12px;border-radius:12px;font-size:12px;background:#263851}.cabin-header button:first-child{width:44px;padding:10px}.cabin-header button[aria-pressed=true]{background:#9af2d9;color:#102938}
+.cabin-stage{position:relative;flex:1;min-height:160px;overflow:hidden;isolation:isolate;background:radial-gradient(ellipse at 50% 30%,#536c83,#22354a 70%);touch-action:pan-y;--room-dim:0.075}
+.cabin-stage.is-decorating{touch-action:none}
+.cabin-shell,.cabin-surface,.cabin-ribs,.cabin-light,#roomObjects,#roomGhost,#roomGuides{position:absolute;inset:0;pointer-events:none}
+.cabin-shell{z-index:0}.cabin-surface{background-color:var(--finish-color);background-repeat:no-repeat;background-size:cover;background-blend-mode:soft-light}
+.cabin-ceiling{bottom:auto;height:19%;clip-path:polygon(0 0,100% 0,91% 100%,9% 100%);filter:brightness(.8)}
+.cabin-wall{top:13%;bottom:32%;background-size:100% 100%;box-shadow:inset 0 0 55px #17213477}
+.cabin-floor{top:63%;background-size:cover;clip-path:polygon(10% 0,90% 0,100% 100%,0 100%);box-shadow:inset 0 14px 18px #111c3677}
+.cabin-surface[data-finish=smooth]{background-image:none!important}.cabin-surface[data-finish=panels]{background-image:repeating-linear-gradient(90deg,transparent 0,transparent 22%,#15233d44 22.2%,transparent 22.8%),linear-gradient(#ffffff14,#00000033)!important}
+.cabin-ribs{z-index:1;background:linear-gradient(100deg,#18273b 0 2%,transparent 2.5% 97%,#18273b 97.5%),linear-gradient(0deg,transparent 0 36%,#c3ddda33 36% 36.5%,transparent 37%);box-shadow:inset 0 0 0 5px #26374d80}
+.ship-arrow .cabin-ribs{background:repeating-linear-gradient(90deg,#2a334033 0 1%,transparent 1% 24%),linear-gradient(0deg,transparent 0 36%,#ffe0cb66 36% 36.5%,transparent 37%)}
+.ship-manta .cabin-wall{border-radius:40% 40% 0 0}.ship-needle .cabin-ribs{border-left:9px double #a89a70;border-right:9px double #a89a70}.ship-starling .cabin-ceiling{border-radius:0 0 50% 50%}
+.cabin-window{position:absolute;border:0;background:none;padding:0;min-height:0;z-index:10;pointer-events:auto;box-shadow:none;filter:drop-shadow(0 5px 7px #09122499)}
+.cabin-window img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
+.space-view{position:absolute;inset:7%;display:block;background-size:cover;background-position:center;background-color:#101b43;overflow:hidden;border-radius:50%}
+.ship-arrow .space-view,.ship-manta .space-view{border-radius:25%}.ship-needle .space-view{border-radius:45%}
+.space-view[data-view=nebula]{background:radial-gradient(ellipse at 35% 35%,#e4b0eb77,transparent 45%),radial-gradient(ellipse at 60% 70%,#665afa,#102044 80%)}
+.space-view[data-view=deep]{background:radial-gradient(circle at 72% 23%,#fff 0 1px,transparent 2px),radial-gradient(circle at 30% 65%,#d4eeff 0 1px,transparent 2px),#080c27;background-size:47px 39px,34px 58px,auto}
+.space-view[data-view=rings]{background:radial-gradient(circle at 20% 25%,#b1d8ef 0 1px,transparent 2px),#152944;background-size:25px 39px,auto}
+.view-planet{display:none}.space-view[data-view=rings] .view-planet{display:block;position:absolute;left:20%;top:20%;width:60%;height:60%;border-radius:50%;background:linear-gradient(25deg,#845b9c,#b9a1dd,#f4e2af);box-shadow:inset -12px -8px 12px #2d315788}.space-view[data-view=rings] .view-planet:after{content:'';position:absolute;inset:25% -35%;border:5px solid #d9c3ae99;border-radius:50%;transform:rotate(-22deg)}
+.cabin-item{position:absolute;display:grid;place-items:center;min-height:0;min-width:0;border:0;padding:0;background:none;border-radius:12px;box-shadow:none;pointer-events:auto;touch-action:inherit;filter:drop-shadow(0 3px 3px #10213988);cursor:pointer}
+.cabin-item:before{content:'';position:absolute;inset:0;min-width:44px;min-height:44px;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:auto;border-radius:10px}
+.cabin-item img{height:100%;width:100%;object-fit:contain;pointer-events:none;user-select:none}.cabin-item .ui-icon{width:100%;height:100%;color:#ffe8ac;pointer-events:none}
+.cabin-item.lamp-off{filter:brightness(.55) saturate(.6)}
+.cabin-item.is-selected{outline:2px solid #8ff4dc;outline-offset:3px;background:#8ff4dc12}.cabin-item:focus-visible{outline:3px solid #fff}
+.single-decal{display:block;width:100%;height:100%;background-repeat:no-repeat;pointer-events:none;filter:drop-shadow(0 1px 1px #09244b)}
+#roomGuides{z-index:250}.placement-anchor{position:absolute;width:6px;height:6px;border-radius:50%;transform:translate(-50%,-50%);background:#81f5c9bb}.placement-anchor.invalid{background:#ff95893d;width:3px;height:3px}
+.selected-footprint{position:absolute;background:#8ff4dc33;border:1px dashed #8ff4dc;border-radius:50%;pointer-events:none}
+#roomGhost{z-index:260}.preview-item{outline:2px dashed #8ff4dc;background:#8ff4dc22;opacity:.88}.invalid-placement{outline:3px solid #ff857b!important;background:#ff665544!important}
+.cabin-light{z-index:270;background:radial-gradient(ellipse at 50% 5%,var(--light-color),transparent 80%);mix-blend-mode:screen}
+.cabin-stage:after{content:'';position:absolute;inset:0;z-index:280;pointer-events:none;background:#030817;opacity:var(--room-dim)}
+.cabin-name{position:absolute;bottom:2%;left:0;right:0;text-align:center;font-size:8px;letter-spacing:2px;color:#e5f3ff66;z-index:2;pointer-events:none}
+.cabin-dock{flex:none;max-height:65%;background:#101c30;border-top:1px solid #4c6a7d;padding:0 10px max(5px,env(safe-area-inset-bottom));box-shadow:0 -5px 20px #0a142755;z-index:300}
+#roomStatus{font-size:11px;line-height:1.3;min-height:28px;margin:6px 2px 2px;color:#c2d5e7;text-align:center}
+.cabin-selection{font-size:11px;line-height:16px;color:#9af2d9;text-align:center;padding:2px 0 5px;height:28px;overflow:hidden}
+.cabin-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:3px 0 6px}.cabin-actions button{min-height:44px;padding:6px 4px;font-size:12px;background:#263a54;border-radius:12px}.cabin-actions #roomDone{background:#a4f1d8;color:#162d3a}.cabin-actions button[aria-pressed=true]{border-color:#8ff4dc;background:#385971}
+.cabin-toolbar{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:6px 0 2px}.cabin-toolbar button{min-height:48px;padding:5px;display:flex;gap:6px;align-items:center;justify-content:center;font-size:11px;border-radius:12px;background:#20334c;color:#daeaf5}.cabin-toolbar .ui-icon{width:18px;height:18px}.cabin-toolbar button[aria-expanded=true]{background:#334e66;color:#a9f7de;border-color:#92c5bc}
+.cabin-drawer{max-height:min(33vh,300px);overflow:auto;overscroll-behavior:contain;border-top:1px solid #344a62;padding:5px 2px 8px;scrollbar-width:thin}
+.drawer-heading{display:flex;align-items:center;gap:8px}.drawer-heading strong{flex:1;font-size:13px}.drawer-heading button{min-height:44px;width:44px;padding:6px;background:#263a54;border-radius:10px}
+.inventory-tabs{display:flex;gap:6px}.inventory-tabs button{min-height:44px;flex:1;padding:6px;font-size:11px;background:#273b55}.inventory-tabs button[aria-pressed=true]{background:#aacde1;color:#14283b}.inventory-note{font-size:10px;line-height:1.5;color:#b8cddf;margin:7px 2px}
+.inventory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.inventory-tile{display:flex;align-items:center;gap:5px;text-align:left;min-height:75px;padding:6px;background:#20334c;border-radius:12px}.inventory-art{flex:none;width:42px;height:45px;display:grid;place-items:center}.inventory-art img{width:100%;height:100%;object-fit:contain}.inventory-art .ui-icon{color:#ffe6a7}.inventory-tile strong{display:block;font-size:10px;line-height:1.4}.inventory-tile small{display:block;font-size:9px;color:#b9ccde;line-height:1.5}
+.cabin-purchase{padding:3px 0 6px}.cabin-purchase p{margin:3px;font-size:12px;color:#ffe3a0;text-align:center}.cabin-purchase p small{display:block;font-size:10px;color:#b8cddd}.cabin-purchase>div{display:flex;gap:8px}.cabin-purchase button{flex:1;min-height:44px;padding:6px;font-size:12px;background:#293f59}.cabin-purchase #previewConfirm{background:#a0f1d6;color:#142b3a}.cabin-purchase #decalVariant{width:100%;min-height:44px;margin:4px 0}
+.surface-control{display:flex;gap:8px;align-items:center;padding:5px 0}.surface-control label{display:flex;align-items:center;justify-content:space-between;flex:1;gap:8px;font-size:12px}.surface-control input,.light-color input{width:50px;height:44px;border:1px solid #6a8399;border-radius:9px;padding:3px;background:#20334c}.surface-control select{width:45%;height:44px;background:#20334c;color:#e9f3ff;border:1px solid #627e96;border-radius:9px;padding:5px;font-size:12px}
+.light-color{display:flex;justify-content:space-between;align-items:center;font-size:12px}.light-range{display:block;font-size:12px;margin-top:10px}.light-range output{float:right}.light-range input{display:block;width:100%;height:44px;accent-color:#8ff4dc}
+.view-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}.view-options button{min-height:44px;font-size:12px;background:#243c54;padding:6px}.view-options button[aria-pressed=true]{background:#aacde1;color:#162b3b}.cabin-records{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:8px}.cabin-records span{font-size:11px;color:#b8cddd}.cabin-records b{display:block;color:#e7f5ff;font-size:20px;margin-top:4px}
+.cabin-editor [hidden]{display:none!important}
+@media(max-height:620px){.cabin-header{min-height:58px;padding-top:max(5px,env(safe-area-inset-top))}.cabin-header strong{font-size:18px}.cabin-drawer{max-height:28vh}#roomStatus{font-size:10px;min-height:25px}.cabin-toolbar button{min-height:44px}}
+@media(prefers-reduced-motion:reduce){.cabin-editor *{animation:none!important;transition:none!important}}

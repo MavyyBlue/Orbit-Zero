@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-09-30 — Bundled hangar-interior candidate
+
+Redesigned five rooms with distinct expanded layouts, smaller furniture and a
+compact Furniture/Surfaces/Lighting dock. Added explicit Decorate mode, drag
+placement, footprints, wall/ceiling anchors, artwork/window clearance, depth
+ordering and Move/Store/Undo/Done. Ownership is separate from placement;
+storing/rearranging is free. Shop selections preview in-room and require explicit
+confirmation at unchanged prices. Purchases save atomically; undo retains
+ownership. Added independent finishes, light color/brightness, individual decal
+motifs, lamp toggles, record consoles and offline window views. Furniture stays
+upright. Nested room migration retains old ownership and wall tint.
+
+Locally validated 52 Node cases and five importer cases, package integrity and
+clean/repeated baseline import. Real Chromium execution is blocked by sandbox
+socket restrictions; expanded three-size browser tests are included for CI.
+Android tooling is absent locally. This candidate awaits upload, its own
+exact-SHA CI/browser/build/lint and phone acceptance. Signing, workflows,
+Workshop, mechanics, aiming and donation restrictions are preserved.
+
+## 2026-09-30 — Accepted dead-zone baseline documentation sync
+
+Live HEAD is `b5a2139337b0aa0d10de4ca1efc27eea52727410`; successful Actions
+run #15 (36755407244) checked out that exact imported SHA and passed 39 Node
+cases, five importer cases, three-size browser smoke, Android build and lint.
+Mavyy reported physical-phone acceptance of the adjustable dead zone. Previous
+pending-upload wording was stale. Rejected timed hold-to-lock remains removed.
+
 ## 2026-09-30 — Remove timed aim lock; adjustable dead-zone candidate
 
 Mavyy's phone test rejected the hold-to-lock feel despite green run #14 at
@@ -11,8 +38,8 @@ immediately updates the existing drag vector. The setting persists additively
 in the existing progress save; legacy saves gain the default without losing data.
 
 Retained planet physics, signing, prices, existing progress/Workshop levels,
-editor dragging and button aiming. This replacement awaits owner ZIP upload,
-its own imported-SHA CI and phone acceptance. Existing bootstrap unchanged;
+editor dragging and button aiming. This replacement was subsequently imported as `b5a2139`, validated by run #15
+and accepted in Mavyy’s phone test. Existing bootstrap unchanged;
 workflows excluded, donations disabled, offline single-player scope retained.
 
 ## 2026-09-30 — Hold-to-lock aiming candidate and baseline sync

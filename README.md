@@ -34,8 +34,10 @@ a brief spark and tiny mushroom cloud play before the result screen.
   changing normal records or stardust. See [Workshop guide](docs/WORKSHOP.md).
 - **Hangar:** five small ship silhouettes with previews beside each name, unlocked with collected stars
   (banked as stardust after a run); four achievement badges.
-- **Ship interiors:** five layered cosmetic rooms with personal wall color and
-  stardust decor. Furnishings do not affect flight.
+- **Ship interiors:** five expanded cosmetic rooms with a Furniture/Surfaces/Lighting
+  dock, explicit Decorate mode, drag placement and free Owned storage. Preview
+  before confirming purchases; independent finishes, lighting, decals and window
+  views persist per ship. Furnishings do not affect flight. See [interior guide](docs/INTERIORS.md).
 - **Support page:** Lyra and Yuki art, creator information, and a disabled
   donation control. No payment link or transaction is available yet.
 - Sound, ambient music, haptics, reduced motion, high contrast, button/keyboard aiming.

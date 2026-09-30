@@ -52,7 +52,7 @@ physical-phone playtest or a store-ready release.
     No decor may alter the flight simulation.
 15. Open Support. The transparent still art should appear; donation tiers must remain disabled with no external checkout.
 
-Known outstanding work for this revision: independent audit, exact-SHA CI run,
+Known outstanding work for the interior candidate: independent audit, its own exact-SHA CI/browser run,
 phone/performance/device certification, store/release preparation. Read CURRENT_STATE
 for what was actually executed locally.
 
@@ -89,8 +89,8 @@ old custom-level retuning and preview trust on the target Android WebView.
 
 ## Adjustable aim dead zone regression and phone acceptance
 
-Mavyy rejected the timed aim-lock feel after installing its green build. This
-candidate removes settling and lock state. Tests cover immediate threshold
+Mavyy rejected the timed aim-lock feel after installing its green build. The accepted `b5a2139`
+baseline removes settling and lock state. Tests cover immediate threshold
 crossing, accumulating slow movements, zero/off behavior, first valid aim,
 setting bounds, old-save migration and persistence. Input integration checks
 exact accepted preview/first live step, other-finger release/cancel, capture loss
@@ -104,3 +104,31 @@ a comfortable value. Aim must respond immediately beyond the chosen threshold
 and never change mode after holding still. Check exact release, repeated pulls,
 button aiming, background interruption, Workshop zoom/speed and settings after
 force-stop. Install over the existing app to retain progress and custom levels.
+
+## Bundled interior regression and acceptance
+
+New local Node tests cover five clear default layouts, stable migration, all
+existing licenses/prices, independent rooms, footprint/mount/window rules,
+multiple same-category furniture, independent repeated decals, invalid/crowded
+saves, and isolation from authoritative prediction. Input contracts exercise
+three phone widths, other-pointer rejection, valid/invalid releases, cancellation,
+backgrounding, undo, preview/cancel, one-time purchases, quota failure and interactions.
+
+The expanded Chromium suite in `room-smoke.mjs` is wired into the existing
+bootstrap browser entrypoint for 320×568, 360×640 and 412×915. It checks five rooms,
+44-pixel controls, room size, assets, migration, surfaces/lighting, records/window/
+lamp interactions, touch rejection/cancellation, store/undo, preview/confirmation,
+insufficient funds, decals, reload and normal-progress/Workshop isolation.
+It has NOT run locally: sandbox restrictions block sockets for the server and
+Chromium IPC. New browser and Android build/lint must pass after upload.
+Baseline run #15 is not evidence for this candidate.
+
+Phone acceptance: update-install without uninstalling. Open all rooms and confirm
+comfortable decorating with actual device insets. Drag, use Move anchors, collide
+footprints, cancel/background mid-drag, store and undo. Verify free re-placement
+and preserved old purchases. Preview/cancel before buying; confirm the displayed
+unchanged price once; store/re-place in another ship without spending. Place
+several individual decal motifs. Tune each surface, light and view; toggle lamps
+and read records. Force-stop/reopen and verify each ship, normal progress and
+saved Workshop levels. Test Android Back and unchanged aiming/planet/preview trust.
+Independent QA and phone feel acceptance remain pending.

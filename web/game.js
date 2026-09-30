@@ -1,7 +1,7 @@
 import { W, H, DT, START, GRAVITY_REACH, encounter, launchVector, createFlight, advance, predict, rng } from './simulation.js';
-import { loadSave, writeSave, SKINS, SHIP_OUTLINES, buySkin, roomFor, setRoomColor, buyDecor } from './save.js';
-import { DECOR } from './decor.js';
-import { art, icon, interiorMarkup } from './ui-art.js';
+import { loadSave, writeSave, SKINS, SHIP_OUTLINES, buySkin } from './save.js';
+import { RoomEditor } from './room-editor.js';
+import { art, icon } from './ui-art.js';
 import { PLANETS } from './planet-rules.js';
 import { Workshop } from './workshop-ui.js';
 import { Sound } from './audio.js';
@@ -12,6 +12,7 @@ const loaded = loadSave(storage), save = loaded.save, sound = new Sound(save.set
 let phase = 'home', previous = 'aim', mode = 'voyage', seed = 1, sector = 1, total = 0, shards = 0, nears = 0, gates = 0;
 let world = encounter(1), flight = null, vector = null, drag = null, trail = [], particles = [], preview = null;
 let clock = 0, accumulator = 0, toastUntil = 0, transition = 0, impactAge = 0, width = 400, height = 720, scale = 1, offsetX = 0, offsetY = 0;
+let roomEditor = null;
 let workshop = null, customLevel = null, editorPointer = null, editorClick = null;
 let finished = false, assist = false, bestBefore = 0, settingsOrigin = 'home', activeRoomId = 'ion';
 const starRng = rng(9201), stars = Array.from({ length: 95 }, () => ({ x: starRng() * W, y: starRng() * H, r: starRng() * 1.1 + .25, a: starRng() * .45 + .2 }));
@@ -35,6 +36,7 @@ function screens(home = false, panel = false) { $('home').hidden = !home; $('pan
 function toast(text) { $('toast').textContent = text; toastUntil = performance.now() + 1600; }
 function updateHud() { $('sectorLabel').textContent = mode === 'custom' ? 'CUSTOM · SANDBOX' : `SECTOR ${String(sector).padStart(2, '0')} / ${mode === 'endless' ? '∞' : '12'}`; $('score').textContent = (total + (flight?.score || 0)).toLocaleString(); $('combo').textContent = `×${flight?.combo || 1}`; }
 function home() {
+  roomEditor?.destroy(); roomEditor = null;
   workshop?.hide(); mode = 'voyage'; $('app').setAttribute('data-custom', 'false');
   phase = 'home'; flight = null; drag = null; preview = null; vector = null; particles = []; trail = [];
   world = encounter(319, 2, 'voyage'); $('notice').textContent = ''; $('toast').textContent = '';
@@ -128,24 +130,14 @@ function hangar() {
   $('shopFromHangar').onclick = () => decorShop(save.skin); $('hangarBack').onclick = home;
 }
 function interior(shipId = save.skin) {
-  if (!save.owned.includes(shipId)) { hangar(); return; }
-  activeRoomId = shipId;
-  phase = 'interior'; const ship = SKINS.find(s => s.id === shipId), room = roomFor(save, shipId);
-  showPanel(`<div class="interior-page">${interiorMarkup(ship, room)}<div class="interior-bar"><button id="roomBack" aria-label="Back to hangar">${icon('icon_back')}</button><div><small>Orbit Zero</small><strong>${ship.name}</strong></div><label class="color-action" aria-label="Change wall color">${icon('icon_paint')}<input id="roomColor" type="color" value="${room.color}" aria-label="${ship.name} interior wall color"></label><button id="roomShop" aria-label="Decor shop">${icon('icon_bag')}</button></div><p class="interior-hint">☝ Tap furnishings to swap them</p></div>`, 'interior');
-  $('panelBody').querySelector('.interior-stage').style.setProperty('--room-color', room.color);
-  $('roomColor').oninput = () => { if (setRoomColor(save, shipId, $('roomColor').value)) { persist(); const stage = $('panelBody').querySelector('.interior-stage'); stage.style.setProperty('--room-color', $('roomColor').value); } };
-  for (const slot of ['seat', 'console', 'plant', 'lamp']) $(`room-${slot}`).onclick = () => decorShop(shipId, slot);
-  $('roomShop').onclick = () => decorShop(shipId); $('roomBack').onclick = hangar;
+  if (!save.owned.includes(shipId)) shipId = save.skin;
+  roomEditor?.destroy(); roomEditor = null;
+  phase = 'interior'; activeRoomId = shipId;
+  showPanel('', 'interior');
+  roomEditor = new RoomEditor($('panelBody'), save, storage, shipId, { onExit: () => { roomEditor?.destroy(); roomEditor = null; hangar(); }, onStorage: ok => { $('saveWarning').hidden = ok; } });
 }
-function decorShop(shipId = save.skin, filter = 'all') {
-  if (!save.owned.includes(shipId)) { hangar(); return; }
-  phase = 'shop'; activeRoomId = shipId;
-  const ship = SKINS.find(s => s.id === shipId), room = roomFor(save, shipId);
-  const categories = ['all', 'seat', 'console', 'plant', 'lamp', 'decal'];
-  showPanel(`<span class="eyebrow">MAKE THIS SHIP YOURS</span><div class="menu-heading"><h2>Decor shop</h2><button class="nav-back" id="shopBack" aria-label="Back to interior">${icon('icon_back')}</button></div><p>For the ${ship.name} · ${save.shards} stardust. One-time purchases; use an item in any owned ship.</p><div class="shop-tabs">${categories.map(k => `<button id="shop-filter-${k}" aria-pressed="${filter === k}">${k === 'all' ? 'All' : k === 'decal' ? 'Decals' : k[0].toUpperCase() + k.slice(1)}</button>`).join('')}</div><div class="shop-list">${DECOR.filter(d => filter === 'all' || d.slot === filter).map(d => `<div class="shop-card"><img src="${art('shop/' + d.file)}" alt="${d.name}"><div><strong>${d.name}</strong><small>${d.slot} · ${save.decorOwned.includes(d.id) ? 'Owned' : `${d.price} stardust`}</small></div><button id="decor-${d.id}" ${!save.decorOwned.includes(d.id) && save.shards < d.price ? 'disabled' : ''}>${room.slots[d.slot] === d.id ? 'Placed' : save.decorOwned.includes(d.id) ? 'Place' : 'Unlock'}</button></div>`).join('')}</div>`);
-  for (const k of categories) $(`shop-filter-${k}`).onclick = () => decorShop(shipId, k);
-  for (const d of DECOR.filter(d => filter === 'all' || d.slot === filter)) $(`decor-${d.id}`).onclick = () => { if (buyDecor(save, shipId, d.id)) { persist(); decorShop(shipId, filter); } };
-  $('shopBack').onclick = () => interior(shipId);
+function decorShop(shipId = save.skin) {
+  interior(shipId); roomEditor.tab = 'furniture'; roomEditor.inventory = 'shop'; roomEditor.update();
 }
 function supportInfo() {
   phase = 'supportInfo';
@@ -185,6 +177,7 @@ document.addEventListener('click', e => {
   editorClick = null;
 }, true);
 document.addEventListener('keydown', e => {
+  if (phase === 'interior' && e.key === 'Escape') { e.preventDefault(); window.orbitBack(); return; }
   if (e.key === 'Escape') { if (phase === 'pause') resume(); else pause(); return; }
   if (phase !== 'aim' || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(e.key) || e.target.tagName === 'INPUT') return;
   e.preventDefault(); if (!assist) { assist = true; $('assist').hidden = false; }
@@ -194,14 +187,14 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowDown') $('power').value = +$('power').value - 5;
   aimFromControls(); if (e.key === ' ') launch();
 });
-window.orbitPause = () => { pause(); sound.suspend(); };
+window.orbitPause = () => { roomEditor?.cancelDrag(); pause(); sound.suspend(); };
 window.orbitBack = () => {
   if (phase === 'home') return false;
   if (phase === 'editor') { if (workshop.libraryOpen) workshop.open(); else home(); }
   else if (phase === 'pause') resume();
   else if (phase === 'settings' && settingsOrigin === 'pause') { phase = previous; pause(); }
   else if (phase === 'shop') interior(activeRoomId);
-  else if (phase === 'interior') hangar();
+  else if (phase === 'interior') { if (!roomEditor?.back()) { roomEditor?.destroy(); roomEditor = null; hangar(); } }
   else if (phase === 'supportInfo') support();
   else if (phase === 'result' && mode === 'custom') openWorkshop();
   else if (['help', 'hangar', 'settings', 'result', 'donate'].includes(phase)) home();

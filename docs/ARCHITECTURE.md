@@ -13,7 +13,7 @@ architecture/game-direction authority. Yuki may revise it after reviewing eviden
 | Run transitions, scoring aggregation, input | `web/game.js`; aim/flight/transit/pause/result states |
 | Rendering | Canvas draw functions in `game.js`; never advance physics |
 | Menus/accessibility controls | Semantic HTML controls in `web/game.js`, art markup in `web/ui-art.js`, CSS in `style.css` |
-| Progress, cosmetics, settings | `web/save.js` plus `web/decor.js`; versioned/sanitized local storage |
+| Progress, cosmetics, settings | `web/save.js`, `web/decor.js` and `web/room-model.js`; versioned/sanitized local storage |
 | Audio | `web/audio.js`; original Web Audio notes/cues, no media downloads |
 | Android | Java Activity, local HTTPS asset origin, bounded haptic bridge |
 | Import/build | Owner-created bootstrap workflow; ZIP cannot modify workflows |
@@ -51,19 +51,34 @@ portable and can later be hosted in WKWebView or moved to another renderer.
 Gameplay state is intentionally compact in one orchestrator. Extract run-state
 and rendering modules if future work warrants it; do not invent empty systems.
 
-The art is an independent presentation layer: 121 screen-sized WebP images
-derived from Lyra's supplied originals, including five sets of 11 interior
-layers. `room-layouts.js` contains normalized positions from the supplied specs.
-The room view composes wall/ceiling tint, floor, window, decals, furnishings
-and lighting in HTML/CSS. Shop equipment changes only saved cosmetic IDs and
-does not enter `simulation.js`. The home/menu uses art backgrounds with real
-HTML text and buttons. Source atlases are not loaded in the WebView.
+The art is an independent presentation layer: the existing 121 optimized WebP
+images and five sets of interior layers remain. `room-layouts.js` retains the
+original asset/default catalog; `room-model.js` owns expanded room designs,
+cosmetic inventory metadata, footprints, window clearance, mount rules and safe
+migration. `room-editor.js` renders/edits documents with a bounded dock and its
+own pointer owner. Validation is shared by drag, tap/keyboard movement, previews
+and save sanitization. `room-editor.css` orders floor items by position and keeps
+perspective furniture upright with contained aspect ratios. Decal sheet cells
+are clipped to individual motifs rather than placing a sheet.
+
+Pending previews are separate from ownership/placement. Confirmation constructs
+a candidate save, applies the existing one-time price and writes the complete
+transaction before updating cosmetic state. Failed writes do not charge or claim
+success. Room-only undo never restores stardust/ownership. Surface/lighting edits
+save on change; drag saves on valid release. Capture loss/background/resize cancel
+unfinished moves. Listeners and observers are removed on exit. Flight orchestration
+only opens/exits this UI; simulation and Workshop never read rooms. No added
+runtime dependency, backend or external request.
 
 ## Save authority and limitations
 
 Schema 1 saves total best, run/gate/near-miss counts, wins, ship and decor
-ownership, stardust, per-ship room tint/equipped slots, settings, and up to 32
-daily scores. The new fields are additive and old saves default safely.
+ownership, stardust, per-ship room documents, settings, and up to 32
+daily scores. Nested `roomVersion: 2` adds independent surfaces/lighting/view and identified
+placements. Global decor licenses remain separate. Old tint/slots migrate;
+invalid or crowded placement becomes stored inventory. Compatibility slots are
+derived; positions are authoritative. The outer version-1 key, normal progress
+and Workshop key are unchanged.
 Rewards are banked at run end.
 Process death abandons the current run. Android app backup is disabled. Corrupt
 saves recover to defaults; storage failures display a warning. No cloud save.
