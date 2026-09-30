@@ -2,10 +2,10 @@
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, executablePath: process.env.ORBIT_BROWSER_EXECUTABLE || undefined });
 mkdirSync('build/screenshots', { recursive: true });
 try {
-  for (const viewport of [{ width: 360, height: 640 }, { width: 412, height: 915 }]) {
+  for (const viewport of [{ width: 320, height: 568 }, { width: 360, height: 640 }, { width: 412, height: 915 }]) {
     const context = await browser.newContext({ viewport, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
     const page = await context.newPage(), errors = [], failedAssets = [];
     page.on('pageerror', error => errors.push(error.message));
@@ -19,6 +19,11 @@ try {
     await page.goto('http://127.0.0.1:8080');
     await page.locator('#play').waitFor();
     await artLoaded();
+    for (const id of ['play', 'hangar', 'settings', 'help']) {
+      const box = await page.locator('#' + id).boundingBox();
+      assert.ok(box && box.width >= 44 && box.height >= 44 && box.y >= 0 && box.y + box.height <= viewport.height, `Reachable home control ${id} at ${viewport.width}px`);
+    }
+    assert.equal(await page.locator('#home').evaluate(el => el.scrollWidth <= el.clientWidth + 1), true);
     await page.screenshot({ path: `build/screenshots/home-${viewport.width}.png` });
     await page.locator('#donate').click();
     await page.locator('.donate-tiers button').first().waitFor();
@@ -68,5 +73,5 @@ try {
     assert.deepEqual(errors, [], `Browser errors at ${viewport.width}px`);
     await context.close();
   }
-  console.log('Browser smoke: PASS at 360×640 and 412×915');
+  console.log('Browser smoke: PASS at 320×568, 360×640 and 412×915');
 } finally { await browser.close(); }

@@ -2,7 +2,7 @@ import { ROOM_LAYOUTS } from './room-layouts.js';
 import { DECOR } from './decor.js';
 
 export const art = path => `art/${path}.webp`;
-export const icon = (name, label = '') => `<img class="ui-icon" src="${art('ui/icons/' + name)}" alt="${label}">`;
+export const icon = (name, label = '') => `<svg class="ui-icon" viewBox="0 0 24 24" ${label ? `role="img" aria-label="${label}"` : 'aria-hidden="true"'}><use href="art/arcade/icons.svg#${name.replace('icon_', '')}"/></svg>`;
 const roomArt = (ship, name) => art(`interiors/${ship.shape}/${name}`);
 
 export function interiorMarkup(ship, room) {

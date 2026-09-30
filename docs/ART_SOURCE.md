@@ -19,4 +19,14 @@ npm run validate
 
 The script bounds image dimensions and encodes WebP. The neon-green donation hero and waving frames receive a technical color-key conversion. Reduced-motion mode shows the still hero. Source PSD/vector masters were not supplied, and no full-screen donate mockup is displayed as a flattened UI; text and buttons are native HTML so they can scale and remain accessible.
 
-The art-based ship portraits are distinct from the compact silhouette used during flight. The hangar displays both so the selectable flight shape is visible. Ship physics are identical. A phone review should judge icon consistency, small-screen readability, interior layering and animation memory.
+The art-based ship portraits are distinct from the compact silhouette used during flight. The hangar displays the illustrated portrait; the compact flight shape remains unchanged. Ship physics are identical. A phone review should judge icon consistency, small-screen readability, interior layering and animation memory.
+
+## 2026-09-30 vector presentation assets
+
+`web/art/arcade/icons.svg` is an original 21-symbol vector icon set.
+`web/art/arcade/space.svg` is an original lightweight orbital starfield.
+These are authored SVG geometry, with no external references or embedded scripts.
+Menus use these consistent scalable icons in place of mixed raster controls;
+Lyra's original WebP files remain in the package unchanged. Portraits, room
+furnishings and the transparent support still remain visible artwork.
+The white-backed support animation is retained but not displayed.

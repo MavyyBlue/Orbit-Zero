@@ -1,25 +1,53 @@
-# Current state — 2026-09-27
+# Current state — 2026-09-30
 
-- Repository: `MavyyBlue/Orbit-Zero`, branch `main`.
-- Live HEAD inspected before this correction: `2e5481957b8b72e57097db900f7fe9e41d0a9811` on `main`; it imported the previous portrait UI package. Its ZIP import checksum is `7a5d103febf795b6ab7ab2c14c6ff915a8451e7c0e1f2dcc2c8232beb0978c55`.
-- This corrected UI source ZIP awaits owner upload. Its imported Git SHA and exact-SHA CI are unknown. No APK from this revision has been built or played on a phone yet.
-- Mavyy is final product authority. Yuki directs architecture, Akari normal implementation, Mio independent QA. This one-shot UI implementation is a candidate for their review, not their certification.
+Repository: `MavyyBlue/Orbit-Zero`, branch `main`.
+Live baseline inspected: `b367135668acc7c19ceb8bc4bf65f2ace8e39bc7`.
+GitHub bootstrap run #10 succeeded: https://github.com/MavyyBlue/Orbit-Zero/actions/runs/36661146202.
+This space-arcade UI revision is a source ZIP candidate awaiting owner upload;
+its final imported SHA, Android build/lint and exact-SHA CI are pending.
+No certification by Mio is claimed.
 
-## Implemented in this source revision
+## What exists
 
-Offline Android-first single-player gravity flight, shared authoritative preview/live physics, Voyage/Endless/Daily, three to five planets, route-placed stars and exit, near-miss scoring and instant retry remain intact. Lyra's art now backs the home, menus, hangar, settings, help, five layered ship interiors and stardust decor shop. Five ship and 11 decor items are cosmetic. Per-ship wall color and furniture slots persist in additive version-1 save fields, preserving existing save IDs and progress. A support page displays Lyra/Yuki art and credits Mavyy, Yuki and Lyra; its donation control is disabled and contains no URL/payment flow. Akari and Mio are absent from in-game copy as requested for this pass.
+Offline Android-first gravity flight, shared preview/live simulation, Voyage,
+Endless and Daily modes, 3–5 planets, route stars, near-misses, quick retry,
+five cosmetic ships, local progress, five layered interiors and an 11-item
+decor shop. This revision changes presentation and menu interaction only.
+Physics, generation, scoring, prices, save IDs and signing remain unchanged.
 
-The high-resolution source pack and 30 atlases are not shipped. The app includes 121 optimized WebP images totaling about 5.1 MiB and a repeatable art-preparation script. See `ART_SOURCE.md`. Three zero-byte images in the earlier candidate (`icon_sparkle`, `ship_arrow`, `icon_lock`) were restored in the current live HEAD. This correction removes decorative card/button artwork with large transparent margins that appeared as duplicate, inset controls beneath real text in Mavyy's five phone captures. Hangar ships gain portrait tiles, challenge copy/progress is laid out without overlap, settings toggles are CSS controls, and the support page uses the transparent still image instead of the white-backed animated WebP. The hangar shows actual saved progress and prices rather than the illustrative values in the mockup.
+The menus now use a navy starfield, consistent mint controls, violet unlocks,
+gold rewards, original SVG icons, labeled dock navigation, framed ship portraits,
+clear ownership/selection states, readable progress cards, and uniform settings.
+Panel headings receive focus; changing a setting preserves scroll and focus.
+High contrast and reduced motion remain available. Gifted ship, room and support
+illustrations remain intact. All 121 WebP assets are retained; two small vector
+assets supply the new backdrop and icon set. No flattened mockup is used as UI.
 
-## Validation performed locally
+Support tiers remain disabled and explicitly say coming soon. There is no
+payment URL, checkout or SDK. In-game credits remain Mavyy, Yuki and Lyra.
 
-- JavaScript syntax and 20 Node tests passed: full 12-sector UI journey, preview/live equivalence, 48 generated gravity routes, 30 Endless samples, save migration/sanitization, shop ownership/equip, every WebP's header/length, and stylesheet asset references.
-- Five Python importer tests passed before packaging; archive manifest, clean baseline import and workflow preservation are verified at packaging.
-- All 121 shipped WebP files decode locally. Mavyy's phone captures of the previous APK were compared with the five supplied mockups; they exposed duplicate painted control surfaces, cramped challenge text, small switches, and a white rectangle behind the waving animation.
-- Browser screenshots and Android build/lint are authored in the existing workflow but **have not run for this new candidate**. Local Chromium is unavailable.
+## Validation
 
-## Limitations and next bounded task
+JavaScript syntax and the existing simulation, route, save, shop, asset and UI
+flow tests pass locally, as do five Python importer tests. Real Chromium browser
+smoke covers 320×568, 360×640 and 412×915: home touch controls, settings persistence,
+hangar, tinting, shop, disabled support tiers, aiming, pause and retry. Visible
+images decode, art requests succeed and no page errors occur. Screenshots were
+reviewed for home, hangar, settings, support, interior, shop and results.
+Packaging validates archive integrity, manifest hashes, clean baseline import
+and preservation of the existing workflow. New Android build/lint, physical
+phone play, screen-reader navigation and upgrade-install testing remain pending.
 
-Phone readability of this correction, scroll access, interior composition, save upgrade installation, APK size and performance remain unverified. Lyra's shipped room layers differ in composition from the supplied Scout mockup, so its full-screen runtime composite is an approximation pending phone screenshot review. The animated donation art remains packaged but is not displayed; the static transparent cutout avoids the white rectangle. The decorative room can be viewed from the hangar; decor is purchased with earned stardust and affects only presentation. The donation tier buttons do not accept money. No iOS host, release signing or store-policy/payment decision exists.
+## Limitations and next slice
 
-Mavyy replaces `orbit-zero-source.zip` at repository root with the delivered archive. Inspect both bootstrap jobs, the exact imported SHA, browser screenshots and APK artifact. Then Yuki and Mavyy test home/hangar/room/shop/support screens and the unchanged core loop on a phone. Mio independently audits assets, save compatibility and CI; Akari receives any bounded correction. The payment destination is a separate later slice.
+The layered room artwork still differs from the original Scout mockup; this is
+its actual supplied runtime composition. Original unused images are retained for
+safe importer compatibility. There is no iOS host or store release configuration.
+
+Mavyy uploads the replacement `orbit-zero-source.zip` at repository root. The
+existing bootstrap workflow imports it and builds the APK. Yuki's next bounded
+task is to review that exact imported SHA and APK on a phone: small-screen menu
+scrolling, labeled navigation, settings persistence, ship/decor ownership and an
+unchanged flight/retry session. Record screenshots and acceptance before further
+UI or gameplay work. Mio can independently audit this evidence; Akari receives
+any specific correction. Donation setup remains a separate future decision.

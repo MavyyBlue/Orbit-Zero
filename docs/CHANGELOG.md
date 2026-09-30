@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-30 — Space arcade UI polish candidate
+
+Unified menus around a navy orbital backdrop, crisp vector icons, mint flight
+controls, violet unlocks and gold rewards. Added labeled dock navigation, clearer
+ship ownership/actions, consistent settings and progress surfaces, panel focus
+and stable settings scroll. Preserved gifted illustrations, saves, physics and
+prices. Support tiers stay disabled with a coming-soon label. Local browser
+validation now runs at three portrait phone sizes; new APK/CI awaits upload.
+
 ## 2026-09-27 — Portrait comparison correction, pending owner import
 
 Compared Mavyy's five phone captures with the supplied UI mockups. Replaced

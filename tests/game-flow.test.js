@@ -35,7 +35,7 @@ test('complete UI voyage, pause, retry, save restoration data and cosmetic/setti
   click('supportAbout'); assert.match(el('panelBody').innerHTML, /AI tools assisted/);
   assert.doesNotMatch(el('panelBody').innerHTML, /Akari|Mio|https?:\/\//);
   click('infoHome');
-  click('hangar'); assert.equal((el('panelBody').innerHTML.match(/class="ship-card"/g) || []).length, 5);
+  click('hangar'); assert.equal((el('panelBody').innerHTML.match(/class="ship-card(?: [^"]*)?"/g) || []).length, 5);
   click('interior-ion'); assert.match(el('panelBody').innerHTML, /interior-stage/);
   assert.equal((el('panelBody').innerHTML.match(/class="room-furn/g) || []).length, 4);
   el('roomColor').value = '#4267af'; el('roomColor').oninput();
