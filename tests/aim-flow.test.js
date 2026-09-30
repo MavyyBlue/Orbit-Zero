@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { encounter, launchVector, predict, createFlight, advance, DT } from '../web/simulation.js';
 
-test('real input locks exact preview and launches frozen velocity; cancellation and pointer ownership are safe', async () => {
+test('real input filters drift and launches exact accepted velocity; cancellation and pointer ownership are safe', async () => {
   const elements = new Map(); let frame, time = 0, dots = [], translation, ship;
   const context = new Proxy({}, { get: (_, k) => {
     if (k === 'createRadialGradient') return () => ({ addColorStop() {} });
@@ -14,7 +14,7 @@ test('real input locks exact preview and launches frozen velocity; cancellation 
   }, set: () => true });
   function parse(html) { for (const m of html.matchAll(/<[^>]*\bid="([^"]+)"[^>]*>/g)) if (!elements.has(m[1])) elements.set(m[1], new Element()); }
   class Element {
-    constructor() { this.value = '75'; this.classList = { toggle() {} }; this.style = { setProperty() {} }; }
+    constructor() { this.textContent = ''; this.value = '75'; this.classList = { toggle() {} }; this.style = { setProperty() {} }; }
     setAttribute() {} querySelector() { return { setAttribute() {}, focus() {} }; }
     set innerHTML(s) { parse(s); } getBoundingClientRect() { return { width: 400, height: 720, left: 0, top: 0 }; }
     getContext() { return context; } setPointerCapture() {}
@@ -34,22 +34,22 @@ test('real input locks exact preview and launches frozen velocity; cancellation 
   time = 10; c.onpointermove(pointer(200, 634)); draw(20);
   const original = predict(launchVector(0, 60), encounter(57)).points;
   assert.deepEqual(dots, original);
-  draw(360); assert.match(el('aimHint').textContent, /^Aim locked/);
-  time = 370; c.onpointermove(pointer(203, 638)); draw(380); assert.deepEqual(dots, original);
+  draw(360); assert.doesNotMatch(el('aimHint').textContent, /lock/i);
+  time = 370; c.onpointermove(pointer(201, 635)); draw(380); assert.deepEqual(dots, original);
   c.onpointercancel(pointer(0, 0, 2)); c.onpointerup(pointer(0, 0, 2));
   assert.equal(el('aimControls').hidden, false, 'other fingers do not cancel or launch');
   time = 400; c.onpointermove(pointer(214, 650)); draw(410);
   const adjusted = predict(launchVector(14, 76), encounter(57)).points;
-  assert.deepEqual(dots, adjusted); assert.doesNotMatch(el('aimHint').textContent, /^Aim locked/);
-  draw(750); assert.match(el('aimHint').textContent, /^Aim locked/);
-  time = 760; c.onpointermove(pointer(217, 653)); draw(770); assert.deepEqual(dots, adjusted);
-  c.onpointerup(pointer(217, 653)); assert.equal(el('aimControls').hidden, true);
+  assert.deepEqual(dots, adjusted);
+  draw(750); assert.deepEqual(dots, adjusted);
+  time = 760; c.onpointermove(pointer(215, 651)); draw(770); assert.deepEqual(dots, adjusted);
+  c.onpointerup(pointer(215, 651)); assert.equal(el('aimControls').hidden, true);
   const expected = createFlight(launchVector(14, 76), encounter(57)); advance(expected, encounter(57));
   draw(770 + DT * 1000 + .001);
-  assert.deepEqual(ship, { x: expected.x, y: expected.y }, 'live flight starts with exact frozen angle and power');
+  assert.deepEqual(ship, { x: expected.x, y: expected.y }, 'live flight starts with exact accepted angle and power');
   el('pause').onclick(); el('quit').onclick(); el('retry').onclick();
   time = 1000; c.onpointerdown(pointer(200, 574)); c.onpointermove(pointer(200, 634)); draw(1350);
-  assert.match(el('aimHint').textContent, /^Aim locked/);
+  assert.doesNotMatch(el('aimHint').textContent, /lock/i);
   c.onlostpointercapture(pointer(200, 634)); c.onpointerup(pointer(200, 634)); draw(1360);
   assert.equal(el('aimControls').hidden, false); assert.deepEqual(dots, []);
   time = 1400; c.onpointerdown(pointer(200, 574)); c.onpointermove(pointer(200, 634)); draw(1750);

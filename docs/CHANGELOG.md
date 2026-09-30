@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-09-30 — Remove timed aim lock; adjustable dead-zone candidate
+
+Mavyy's phone test rejected the hold-to-lock feel despite green run #14 at
+`4547952ec24f17d24d3cd166d1cab79399a3cd70`. Removed the aim settling timer,
+lock state and lock cue. Restored continuous drag adjustment with a player
+Settings slider for small movement filtering: Aim dead zone, 0–12 screen pixels,
+default 2, with 0/off accepting every move. Movement beyond the chosen distance
+immediately updates the existing drag vector. The setting persists additively
+in the existing progress save; legacy saves gain the default without losing data.
+
+Retained planet physics, signing, prices, existing progress/Workshop levels,
+editor dragging and button aiming. This replacement awaits owner ZIP upload,
+its own imported-SHA CI and phone acceptance. Existing bootstrap unchanged;
+workflows excluded, donations disabled, offline single-player scope retained.
+
 ## 2026-09-30 — Hold-to-lock aiming candidate and baseline sync
 
 Added a 350 ms still-hold aim lock that freezes direction, power and the exact

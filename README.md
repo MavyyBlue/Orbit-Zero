@@ -10,8 +10,9 @@ conversations were imported. Only the owner-uploaded ZIP ingestion approach is s
 
 ## Play
 
-Pull back near the little ship. Hold still briefly to lock direction and power
-against tiny finger drift; move deliberately to adjust again. Release to launch. The dotted arc covers the first 2.1 seconds
+Pull back near the little ship, adjust your line, then release to launch.
+Settings includes an adjustable Aim dead zone (0–12 screen pixels, default 2)
+to ignore minor finger drift. Zero disables that filter; there is no timed aim lock. The dotted arc covers the first 2.1 seconds
 of flight using exactly the same fixed-step simulation. Curve around varied
 gravitational planets to collect stars tucked beyond their direct sightlines and
 reach the exit ring. Each surviving near miss raises

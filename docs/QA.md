@@ -87,18 +87,20 @@ and capture → pause → resume → release at three phone sizes. Physical acce
 still needs all five types, high-speed Crusher collisions, gravity-zero obstacles,
 old custom-level retuning and preview trust on the target Android WebView.
 
-## Hold-to-lock aim regression and phone acceptance
+## Adjustable aim dead zone regression and phone acceptance
 
-Gesture tests cover valid/deadzone settling, small touch noise, slow continuous
-adjustment, cumulative unlock distance, repeated relocking and settling before
-the next animation frame. Input integration compares the exact rendered preview
-and first live step against the authoritative simulation, and checks other-finger
-release/cancel, capture loss and background pause. Browser touch smoke exercises
-lock/drift/unlock/relock/release at all three phone sizes and a zoomed Workshop
-arena with non-default speed; custom gestures preserve normal saves.
+Mavyy rejected the timed aim-lock feel after installing its green build. This
+candidate removes settling and lock state. Tests cover immediate threshold
+crossing, accumulating slow movements, zero/off behavior, first valid aim,
+setting bounds, old-save migration and persistence. Input integration checks
+exact accepted preview/first live step, other-finger release/cancel, capture loss
+and background pause. Browser touch smoke covers Settings scroll access,
+persistence across reload and other toggles, enabled/off behavior and normal
+and zoomed Workshop drag aiming at three phone sizes. Custom gestures retain
+normal progress, and editor object dragging stays unchanged.
 
-Phone acceptance for this candidate: check that a normal quick pull still feels
-unchanged; hold for the lock cue, drift slightly, move deliberately to unlock,
-relock and release. Both angle and speed should stay fixed during lock. Repeat
-in Workshop at small/large arena sizes, and try interruption/backgrounding.
-The 350 ms / 2 px / 8 px thresholds are initial tuning, not device-certified values.
+Phone acceptance: use the default 2 px, try 0/off and higher values, then choose
+a comfortable value. Aim must respond immediately beyond the chosen threshold
+and never change mode after holding still. Check exact release, repeated pulls,
+button aiming, background interruption, Workshop zoom/speed and settings after
+force-stop. Install over the existing app to retain progress and custom levels.

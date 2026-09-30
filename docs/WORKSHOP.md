@@ -19,10 +19,11 @@ Objects keep proportional positions; radii stay in world units. Global gravity
 initial velocity. Flight time limit is 5–60 seconds. Instant respawn returns to
 aiming after a failure, with a short collision beat; reaching the exit still
 shows a completion result. Button aiming supports a full 360-degree launch.
-The visible first 2.1 seconds use exactly the live physics. Drag aiming locks
-direction and power after a brief still hold; tiny drift is ignored until you
-move deliberately again. Release launches, whether locked or still adjusting.
-Lock sensitivity stays consistent across arena zoom and launch-speed settings.
+The visible first 2.1 seconds use exactly the live physics. Settings includes an Aim dead zone (0–12 screen pixels, default 2) to ignore
+minor finger drift during drag aiming. Movement beyond that distance immediately
+adjusts direction and power; release launches. Zero turns the filter off.
+Sensitivity stays consistent across arena zoom and launch-speed settings.
+This setting does not affect dragging objects in the editor.
 
 Up to 12 planets and 24 stars are allowed. Move launch/exit away from planets
 before Test fly; overlapping start/exit blocks play with a message. The editor

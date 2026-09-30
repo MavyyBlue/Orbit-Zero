@@ -1,19 +1,19 @@
 # Current state — 2026-09-30
 
 Repository: `MavyyBlue/Orbit-Zero`, branch `main`.
-Confirmed imported five-planet baseline: `c6f7940433cea0c7910cb500fe45c9ab40302927`.
-Bootstrap run #13 succeeded:
-https://github.com/MavyyBlue/Orbit-Zero/actions/runs/36680968975.
-Although the run's event SHA is the ZIP-upload commit `fda49f746b2307b833c2d189fe147c2031cfac37`,
-its validate job checked out and tested the imported SHA above. Logs confirm 33
-Node tests, five importer tests, browser smoke, Android debug build and lint.
-Mavyy accepted that update on a real phone and called it the most addictive yet.
-That is gameplay acceptance, not independent QA or broad device certification.
-The prior `831ed742` / run #12 baseline is superseded.
+Current live baseline: `4547952ec24f17d24d3cd166d1cab79399a3cd70`.
+Bootstrap run #14 succeeded:
+https://github.com/MavyyBlue/Orbit-Zero/actions/runs/36752141785.
+Its validate job checked out that exact imported SHA and passed 38 Node tests,
+five importer tests, browser smoke, Android debug build and lint.
+Mavyy rejected the hold-to-lock player feel in the real-phone test and requested
+its removal. Green CI did not constitute gameplay acceptance.
 
-This pass adds hold-to-lock drag aiming and syncs the baseline evidence.
-It is a new source ZIP candidate; its imported SHA and new CI/build remain
-pending owner upload. No independent Mio certification is claimed.
+The previously accepted five-planet feel remains the reference: `c6f7940433cea0c7910cb500fe45c9ab40302927`,
+green in run #13 (36680968975). Preserve that physics and continuous aiming.
+This new replacement removes timed aim lock and adds an adjustable dead zone.
+Its imported SHA, new CI/Android build and phone acceptance await owner upload;
+no independent Mio certification or broad device certification is claimed.
 
 ## What exists
 
@@ -56,44 +56,43 @@ settings, art loading, shop and flight smoke also pass without page errors.
 
 Archive integrity, manifest hashes and a clean baseline import are checked before
 delivery. Workflows are excluded from the ZIP; the existing bootstrap is retained.
-The new aim-lock candidate needs its own imported SHA, Android build/lint and
+The new dead-zone candidate needs its own imported SHA, Android build/lint and
 phone acceptance. Screen-reader review, upgrade-install checks and broader device
 performance remain outstanding. Verified launches prove generated worlds solvable,
 not that every route is intuitive or equally forgiving.
 
-## Hold-to-lock aiming candidate
+## Adjustable aim dead zone candidate
 
-38 Node tests and five Python importer tests pass locally, including exact
-locked-preview and first live-step equivalence, repeated relocking, continuous
-movement, wrong-pointer handling, capture loss and background pause. Real
-Chromium touch smoke also passes at 320×568, 360×640 and 412×915, covering
-normal and zoomed Workshop lock/drift/unlock/relock/release, cancellation, pause
-and normal-save isolation. Local browser: Chromium 153 software headless; the
-unchanged bootstrap retains its pinned Playwright browser installation for CI.
+39 Node tests and five Python importer tests pass locally. Real Chromium touch
+smoke passes at 320×568, 360×640 and 412×915, including slider scroll access,
+reload/toggle persistence, enabled/off filtering, release and zoomed Workshop
+normal-save isolation. Input tests compare the exact accepted preview and first
+live step and cover pointer ownership/cancellation/backgrounding. The source
+archive is checked for hashes, repeat import and workflow/signing preservation.
+New Android build/lint, imported-SHA CI and physical feel await owner upload.
 
-The existing drag direction, power mapping and simulation remain unchanged while
-adjusting. After 350 ms of stillness within a 2 CSS-pixel settling region, a valid
-aim locks its exact vector and preview. Movement within 8 CSS pixels of the lock
-point is ignored; crossing that distance unlocks and resumes the existing drag
-mapping from the original touch-down point. Holding still can relock any number
-of times. Releasing launches the last accepted vector, locked or unlocked; a
-short/deadzone gesture has no aim and never locks or launches. There is no
-extra tap, hold-to-launch timer or permanent lock.
+Settings includes Aim dead zone: 0–12 CSS screen pixels, integer step 1,
+default 2. Zero disables movement filtering. No timer, still-hold lock, unlock
+mode or lock cue remains. A valid aim ignores pointer moves within the selected
+distance of the last accepted screen point; movement beyond it immediately
+accepts the full current drag position using the existing direction/power mapping.
+Small moves accumulate from the accepted point, so slow adjustment still works.
+Release launches the exact last accepted vector and its authoritative preview.
+The original minimum launch pull remains unchanged.
 
-An inline aim hint identifies the lock. Thresholds use screen pixels, independent
-of arena zoom. Workshop speed still scales the launch vector normally. Cancel,
-lost pointer capture and resize abandon the gesture. Pause abandons the gesture
-and lock; its existing resume behavior retains the last preview for subsequent
-adjustment or button aiming. Only the owning pointer can move/release/cancel it.
-Button/keyboard controls keep their existing behavior and clear any active drag.
+The numeric preference is additive in `orbit-zero.save.v1`. Old saves gain the
+default, corrupt values are bounded/defaulted, and changes persist from Settings
+without rerendering the panel or resetting scroll. Workshop zoom uses the same
+screen-pixel threshold and its existing speed multiplier. Editor object dragging
+and button/keyboard aiming are unchanged. Gesture cancellation/ownership handling
+remains, and pause abandons the gesture without launching.
 
 ## Next bounded slice
 
 Mavyy replaces repository-root `orbit-zero-source.zip`; the existing bootstrap
-imports it and builds the APK. No replacement workflow is needed. Record that
-new imported SHA/run after upload; never label run #13 as validation of aim lock.
-Phone-test normal quick pulls, still hold, tiny drift, deliberate unlock, repeated
-relock and release. Check Workshop zoom/speed, pointer interruption/background,
-and old progress and levels after update-installing without uninstalling.
-Preserve the accepted five-planet feel; adjust lock thresholds from phone feedback
-before expanding this slice. Donations remain disabled and offline play remains.
+imports it and builds the APK. No replacement workflow is needed. Record the
+new imported SHA/run after upload; run #14 validates only the rejected aim-lock
+baseline. Phone-test quick/slow adjustment at 0, 2 and higher settings, immediate
+response after a still hold, release, Workshop zoom and preference retention
+after force-stop. Update-install without uninstalling to retain old progress and
+levels. Donations stay disabled; offline/single-player scope remains.

@@ -28,7 +28,7 @@ h3 { font-size:20px; letter-spacing:-.5px; }
 #toast { position:absolute; top:36%; width:100%; text-align:center; pointer-events:none; color:#ffe0ac; font-size:21px; font-weight:800; text-shadow:0 2px 20px #000; }
 #aimControls { position:absolute; bottom:max(18px,env(safe-area-inset-bottom)); left:22px; right:22px; text-align:center; pointer-events:none; }
 #assist,#aimToggle { pointer-events:auto; }
-#aimHint { min-height:2.4em; font-size:13px; color:#d6e5ee; text-shadow:0 2px 8px #030a17; }
+#aimHint { font-size:13px; color:#d6e5ee; text-shadow:0 2px 8px #030a17; }
 #assist { background:#0d1935f5; padding:15px; border:1px solid #617899; border-radius:18px; box-shadow:0 8px 30px #0006; }
 #assist label { display:flex; align-items:center; justify-content:space-between; font-size:12px; margin-bottom:8px; }
 input[type=range] { width:65%; accent-color:#9cf5df; min-height:32px; }
@@ -54,3 +54,9 @@ input[type=range] { width:65%; accent-color:#9cf5df; min-height:32px; }
 .tint-control input{width:70px;height:44px;background:transparent;border:0}
 .interior-stage{--room-color:#8ff4e0}
 .room-furn.seat,.room-furn.console{width:33%}.room-furn.plant{width:19%}.room-furn.lamp{width:22%}
+
+.aim-deadzone-setting { padding:16px; margin:16px 0; background:#101d35; border:1px solid #38486a; border-radius:16px; }
+.aim-deadzone-setting label { display:flex; justify-content:space-between; gap:12px; font-weight:700; }
+.aim-deadzone-setting output { color:var(--mint); white-space:nowrap; }
+.aim-deadzone-setting input { display:block; width:100%; min-height:44px; margin:8px 0; }
+.aim-deadzone-setting p { color:var(--muted); font-size:13px; line-height:1.5; margin:0; }

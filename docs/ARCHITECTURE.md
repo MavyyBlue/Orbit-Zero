@@ -125,13 +125,22 @@ rather than a fixed top strip. A bounded search falls back to a verified templat
 for its progression stage and body count; all twelve fallback combinations are
 tested. Existing world bounds, score/save keys and debug signing remain stable.
 
-## Drag aim stabilization
+## Adjustable drag dead zone
 
-`aim-lock.js` filters pointer movement in CSS screen pixels only. The current
-pointer gesture owns settling time, anchor/latest positions and lock state;
-no lock state enters saves, level documents or flight physics. `game.js` keeps
-the last accepted launch vector and its authoritative prediction while locked.
-Stillness (350 ms within 2 px) locks a valid aim; movement beyond 8 px unlocks.
-The original drag origin and launch mapping are retained, including Workshop
-speed. Release uses that exact vector. Pointer cancellation/loss, resize or
-leaving aim discard the gesture; controls clear active drag ownership.
+The hold-to-lock experiment was rejected in Mavyy's phone test and removed.
+`aim-lock.js` retains its already-owned package path but now contains only the
+`AimDeadZone` movement filter and numeric setting sanitizer; no timers or lock
+state remain. Settings owns `aimDeadZone` (integer 0–12 CSS pixels, default 2)
+in the existing version-1 progress save. Old saves gain that one setting while
+all previous progress/cosmetics/settings remain. Zero accepts every pointer
+update, preserving the original drag behavior.
+
+During a valid aim, moves within the selected distance of the last accepted
+screen point preserve the vector/preview. Crossing the distance immediately
+accepts the full current drag position relative to the original touch-down;
+slow movement accumulates rather than being discarded forever. No settling
+period or timed state transition exists. The original minimum launch pull and
+Workshop speed mapping remain. Preview and live flight use the same accepted
+vector and authoritative simulation. Button/keyboard aiming and editor object
+dragging do not use the filter. Cancellation, capture loss, resize and leaving
+aim discard pointer ownership.

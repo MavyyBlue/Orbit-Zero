@@ -49,3 +49,17 @@ test('decor unlocks once, remains cosmetic, and old saves gain safe rooms', () =
   assert.equal(parseSave(JSON.stringify(s)).rooms.ion.slots.console, undefined);
   assert.equal(parseSave(JSON.stringify(s)).rooms.ion.color, SKINS[0].color);
 });
+
+test('aim dead-zone settings migrate and persist without losing existing progress', () => {
+  const legacy = { version: 1, best: 3200, shards: 80, owned: ['ion','ember'], skin: 'ember', settings: { sound: false } };
+  const save = parseSave(JSON.stringify(legacy));
+  assert.equal(save.settings.aimDeadZone, 2); assert.equal(save.settings.sound, false);
+  save.settings.aimDeadZone = 0;
+  const restored = parseSave(JSON.stringify(save));
+  assert.equal(restored.settings.aimDeadZone, 0); assert.equal(restored.best, 3200);
+  assert.equal(restored.shards, 80); assert.equal(restored.skin, 'ember');
+  for (const [value, expected] of [[12,12],[-1,0],[99,12],[true,2],['4',2],[null,2]]) {
+    save.settings.aimDeadZone = value;
+    assert.equal(parseSave(JSON.stringify(save)).settings.aimDeadZone, expected);
+  }
+});

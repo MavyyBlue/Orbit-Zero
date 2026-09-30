@@ -1,6 +1,7 @@
 import { DECOR } from './decor.js';
+import { DEFAULT_AIM_DEAD_ZONE, normalizeAimDeadZone } from './aim-lock.js';
 export const SAVE_KEY = 'orbit-zero.save.v1';
-export const freshSave = () => ({ version: 1, best: 0, runs: 0, gates: 0, near: 0, shards: 0, victories: 0, skin: 'ion', owned: ['ion'], decorOwned: [], rooms: {}, daily: {}, settings: { sound: true, music: true, haptics: true, reduced: false, contrast: false } });
+export const freshSave = () => ({ version: 1, best: 0, runs: 0, gates: 0, near: 0, shards: 0, victories: 0, skin: 'ion', owned: ['ion'], decorOwned: [], rooms: {}, daily: {}, settings: { sound: true, music: true, haptics: true, reduced: false, contrast: false, aimDeadZone: DEFAULT_AIM_DEAD_ZONE } });
 const bounded = v => Number.isSafeInteger(v) && v >= 0 ? Math.min(v, 1000000000) : 0;
 export function parseSave(raw) {
   const s = freshSave();
@@ -22,7 +23,8 @@ export function parseSave(raw) {
       }
       s.rooms[ship.id] = { color, slots };
     }
-    for (const k of Object.keys(s.settings)) if (typeof v.settings?.[k] === 'boolean') s.settings[k] = v.settings[k];
+    for (const k of Object.keys(s.settings)) if (typeof s.settings[k] === 'boolean' && typeof v.settings?.[k] === 'boolean') s.settings[k] = v.settings[k];
+    s.settings.aimDeadZone = normalizeAimDeadZone(v.settings?.aimDeadZone);
     if (v.daily && typeof v.daily === 'object') for (const [k, val] of Object.entries(v.daily).slice(-32)) if (/^\d{4}-\d{2}-\d{2}$/.test(k)) s.daily[k] = bounded(val);
   } catch { /* Corrupt or missing saves fall back to defaults. */ }
   return s;

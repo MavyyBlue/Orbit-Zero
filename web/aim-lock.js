@@ -1,28 +1,16 @@
-// Screen-pixel gesture filter only. Flight/preview physics remain authoritative.
-export const AIM_SETTLE_MS = 350, AIM_STILL_PX = 2, AIM_UNLOCK_PX = 8;
-export class AimLock {
-  constructor(x, y, now) {
-    this.anchor = this.latest = { x, y };
-    this.since = now;
-    this.locked = false;
-  }
-  settle(now, hasAim) {
-    if (!this.locked && hasAim && now - this.since >= AIM_SETTLE_MS) {
-      this.locked = true;
-      this.anchor = { ...this.latest };
-    }
-    return this.locked;
-  }
-  move(x, y, now, hasAim) {
-    this.settle(now, hasAim);
-    const distance = Math.hypot(x - this.anchor.x, y - this.anchor.y);
-    if (this.locked && distance <= AIM_UNLOCK_PX) return false;
-    if (this.locked || distance > AIM_STILL_PX) {
-      this.locked = false;
-      this.anchor = { x, y };
-      this.since = now;
-    }
-    this.latest = { x, y };
+// Existing filename is retained for package ownership compatibility.
+// Screen-pixel movement dead zone only: no timer, settling or lock state.
+export const DEFAULT_AIM_DEAD_ZONE = 2, MAX_AIM_DEAD_ZONE = 12;
+export function normalizeAimDeadZone(value) {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? Math.max(0, Math.min(MAX_AIM_DEAD_ZONE, Math.round(value))) : DEFAULT_AIM_DEAD_ZONE;
+}
+export class AimDeadZone {
+  constructor(x, y) { this.anchor = { x, y }; }
+  move(x, y, radius, hasAim) {
+    const threshold = normalizeAimDeadZone(radius);
+    if (hasAim && threshold > 0 && Math.hypot(x - this.anchor.x, y - this.anchor.y) <= threshold) return false;
+    this.anchor = { x, y };
     return true;
   }
 }
