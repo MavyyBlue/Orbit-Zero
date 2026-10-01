@@ -2,9 +2,17 @@
 
 ## Station Foundation candidate — local implementation
 
+October 1 visual refinement: the concept now also guides the starfield/purple
+nebula and decorative faceted planets/rocks. Hangar has a broad open bay on a
+thick floating deck, rim lights, landing apron and stepped docking extension.
+A lower orthographic angle shows the bay depth. The whole outpost follows the
+reference composition: central bay/deck, attached service wing, habitation tower,
+collector platform and greenhouse plot, joined by armored links. The sky is presentation-only, with locally generated texture data.
+
 A separate low-poly Three.js r170 station is now accessible from the existing
-main menu. Four fixed plots support orthographic drag/pinch exploration and
-building taps; accessible buttons and zoom/reset controls are also present.
+main menu. One connected concept-led outpost with five tappable areas supports
+orthographic drag/pinch exploration; direct building taps and zoom/reset controls. A compact system selector appears
+only on keyboard focus or renderer failure.
 Hangar reuses current ship selection/unlocks and challenges. Engineering,
 Harvester and Astronaut Station are future-system panels without transactions.
 Station-launched Voyage/Endless runs return to the hub, with immediate retry
@@ -15,7 +23,8 @@ and cosmetic data remain compatible; ship interiors stay retired. The separate
 renderer loads locally on demand, disposes on exit, suspends on background, and
 supports static reduced motion and accessible fallback on WebGL failure.
 Physics, planets, accepted aiming, Workshop model/editor, Android host, signing
-and workflow source are unchanged. The parked ship is a prototype; Phase 2 will
+and workflow source are unchanged. The Hangar follows the owner's October 1 gray/orange/cyan industrial arcade
+reference, with an open bay, warm lights and clear landing apron. Phase 2 will
 integrate active-ship visuals and failure-safe ship purchases.
 
 No station production/upgrades/technicians are active. The main menu is retained

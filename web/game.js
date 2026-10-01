@@ -51,14 +51,19 @@ function home() {
   world = encounter(319, 2, 'voyage'); $('notice').textContent = ''; $('toast').textContent = '';
   $('homeBest').textContent = save.best.toLocaleString(); screens(true); resize();
 }
+let stationClick = null;
 function openStation() {
   menuOrigin = 'station'; workshop?.hide(); mode = 'voyage'; $('app').setAttribute('data-custom', 'false');
   phase = 'station'; flight = null; drag = null; vector = null; preview = null; trail = []; particles = []; accumulator = 0;
   $('notice').textContent = ''; $('toast').textContent = ''; $('stationBalance').textContent = save.shards.toLocaleString(); screens();
   station ||= new StationHub($('stationViewport'), {
     getCamera: () => stationCamera, getReduced: () => save.settings.reduced,
-    onCamera: camera => { stationCamera = camera; }, onBuilding: openStationBuilding,
+    onCamera: camera => { stationCamera = camera; }, onBuilding: (id, point) => {
+      stationClick = { ...point, until: performance.now() + 600 }; openStationBuilding(id);
+    },
     onStatus: status => {
+      $('stationAccess').dataset.fallback = String(status === 'fallback' || status === 'lost');
+      $('stationAccess').value = '';
       $('stationHint').textContent = status === 'loading' ? 'Preparing your orbital home…' : status === 'ready' ? 'Drag to explore · pinch to zoom · tap a building' : '3D view unavailable. Your buildings and launch controls still work.';
       for (const id of ['stationReset', 'stationZoomIn', 'stationZoomOut']) $(id).disabled = status !== 'ready';
     }
@@ -182,7 +187,7 @@ $('stationEntry').onclick = openStation;
 $('stationVoyage').onclick = () => start('voyage', 'station'); $('stationEndless').onclick = () => start('endless', 'station');
 $('stationMenu').onclick = home; $('stationWorkshop').onclick = openWorkshop; $('stationSettings').onclick = () => settings('station');
 $('stationReset').onclick = () => station?.reset(); $('stationZoomIn').onclick = () => station?.zoom(1.1); $('stationZoomOut').onclick = () => station?.zoom(.9);
-for (const id of ['hangar', 'engineering_bay', 'stardust_harvester', 'astronaut_station']) $(`station-${id}`).onclick = () => openStationBuilding(id);
+$('stationAccess').onchange = e => { if (e.target.value) openStationBuilding(e.target.value); };
 $('pause').onclick = pause; $('settings').onclick = () => settings(); $('hangar').onclick = hangar; $('help').onclick = help;
 $('donate').onclick = support; $('donateInfo').onclick = supportInfo;
 $('aimToggle').onclick = () => { drag = null; assist = !assist; $('assist').hidden = !assist; $('aimToggle').textContent = assist ? 'Hide button aiming' : 'Button aiming'; if (assist) aimFromControls(); else { vector = null; preview = null; } resize(); };
@@ -199,8 +204,10 @@ canvas.onpointercancel = e => { if (e && (phase === 'editor' ? editorPointer !==
 canvas.onlostpointercapture = e => { if (drag?.id === e.pointerId || editorPointer === e.pointerId) canvas.onpointercancel(e); };
 // A touch ending on the canvas can synthesize a click on a newly opened panel.
 // Consume that gesture's click; a fresh UI pointerdown always clears the guard.
-document.addEventListener('pointerdown', e => { if (e.target !== canvas) editorClick = null; }, true);
+document.addEventListener('pointerdown', e => { if (e.target !== canvas) editorClick = null; stationClick = null; }, true);
 document.addEventListener('click', e => {
+  if (stationClick && performance.now() <= stationClick.until && Math.hypot(e.clientX - stationClick.x, e.clientY - stationClick.y) < 4) { e.preventDefault(); e.stopPropagation(); }
+  stationClick = null;
   if (editorClick && performance.now() <= editorClick.until && Math.hypot(e.clientX - editorClick.x, e.clientY - editorClick.y) < 4) { e.preventDefault(); e.stopPropagation(); }
   editorClick = null;
 }, true);

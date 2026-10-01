@@ -33,8 +33,9 @@ and progression features remain planned; release/device checks remain open.
 
 Development order: source/rendering feasibility → Station Foundation → Hangar
 integration → Economy / Stardust Harvester → Engineering Bay → Astronaut Station
-→ Martian Garden → Visual-Life Pass. Ship interiors and decorating are retired. Start with four fixed primary structures;
-introduce Garden and further structures through a modular catalog later.
+→ Martian Garden → Visual-Life Pass. Ship interiors and decorating are retired. The four primary systems and reserved Garden share one composition modeled
+after the whole reference image. Garden mechanics and further structures arrive
+through later modular phases.
 
 See [station architecture and phase gates](STATION_PLAN.md) for the inspected
 source integration map, offline 3D constraints, persistence/economy safeguards,

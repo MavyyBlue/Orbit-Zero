@@ -1,5 +1,49 @@
 # Changelog
 
+## 2026-10-01 — Direct station navigation
+
+Removed the five-building button grid so the 3D outpost occupies most of the
+screen. Tap the structures to open their systems. Launch, camera and general
+navigation controls remain. A compact system selector appears only on keyboard
+focus or renderer failure, preserving access without cluttering the touch layout.
+
+
+## 2026-10-01 — Unified concept-led orbital outpost
+
+Replaced the independent four-tile composition with one central Hangar/deck,
+attached Engineering wing, habitation/communications tower and solar wing,
+blue-crystal Harvester platform, and Martian greenhouse/planting beds. Armored
+links, gray/orange materials and cyan/amber lights unify the whole composition.
+All five areas remain tappable with accessible button alternatives. Greenhouse
+framing uses a narrow raycast tolerance; station touch selection consumes the
+synthetic click so it cannot immediately press a newly opened panel’s Back button. Tiny
+astronauts and plants are decorative; no crew, garden or economy systems are
+activated. Camera saves, ship rules and protected flight/Workshop authorities
+remain unchanged.
+
+Validation: 56 Node cases, five importer cases and full Chromium journeys at
+three phone sizes passed. Direct geometry taps cover all five integrated areas.
+Android WebView/device acceptance remains pending.
+
+## 2026-10-01 — Concept backdrop and broader Hangar silhouette
+
+Added a decorative starfield, purple nebula, low-poly planets and floating rocks.
+Rebuilt the Hangar's deck as a thick faceted floating platform with rim equipment,
+a wider open bay, larger landing marking and stepped docking extension. Adjusted
+the orthographic viewing angle to expose bay depth and replaced the solid station
+board with connecting walkways. Sky textures are generated locally and disposed
+with scene resources. These changes do not affect flight, planet mechanics,
+progression, save format or gesture rules.
+
+## 2026-10-01 — Reference-led low-poly Hangar
+
+Replaced the mint box/parked prototype with a faceted gray open-bay Hangar,
+orange trim, cyan screens/beacons, warm bay illumination, marked landing apron,
+rooftop operations pod/dish, solar array and cargo cases. The asset lives in
+`station-hangar.js` and uses the existing scene/resource-disposal lifecycle.
+Station controls, saves, ship transactions and authoritative flight remain unchanged.
+
+
 ## 2026-09-30 — Station Foundation candidate
 
 Added an offline low-poly orthographic station with four fixed building plots,

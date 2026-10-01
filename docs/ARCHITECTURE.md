@@ -14,7 +14,10 @@ architecture/game-direction authority. Yuki may revise it after reviewing eviden
 which owns a separate WebGL canvas, orthographic diorama, scene resources and
 30 Hz decorative animation. `station-input.js` arbitrates taps/drags/pinches;
 it never shares the accepted flight gesture filter. `station-catalog.js` holds
-four fixed plot/feature definitions. `station-model.js` normalizes a nested
+five integrated area/feature definitions. `station-outpost.js` assembles the
+reference-led central Hangar, attached service equipment, habitation tower,
+collector installation and reserved greenhouse. Decorative astronauts/plants
+do not read or mutate progression. `station-model.js` normalizes a nested
 version-1 cosmetic camera in the existing save; no economy or modifiers exist.
 The offline Three.js r170 module and MIT license are vendored under `web/vendor`.
 

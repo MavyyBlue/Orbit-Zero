@@ -22,7 +22,8 @@ and Chromium journeys at 320×568, 360×640 and 412×915.
 
 Required station phone review: update-install without uninstalling; enter from
 the main menu; drag/pinch with real fingers, cancel/background mid-gesture, tap
-all four plots, and use accessible buttons/reset/zoom controls. Check small-screen
+all five integrated areas, and use direct building taps/reset/zoom controls. Verify keyboard system selection
+and the compact selector on renderer failure; no building button grid is shown. Check small-screen
 readability, camera limits/framing after force-stop, Hangar/settings/Workshop Back,
 both run modes, direct retry and unchanged preview/planet/dead-zone feel. Check
 renderer loss recovery, heat/frame pacing on a low-end WebView, reduced motion,

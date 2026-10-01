@@ -18,19 +18,61 @@ The station is the player's persistent home between runs. This is the committed 
 
 The intended loop is Station → prepare/select ship → launch → existing Orbit Zero run → existing results/reward settlement → Station → improve ships or buildings → launch again. Keep an immediate retry action on results; returning to the station must not become mandatory busywork between every run. Launch remains readily accessible from the station and Hangar.
 
-Use a stylized miniature diorama: a fixed 3/4 orthographic camera, compact lovable 3D structures, clear silhouettes, readable upgrade additions, and a calm orbital backdrop. Begin with four fixed building plots. Do not introduce free placement, roads, adjacency bonuses, production chains, or city simulation.
+Use a stylized miniature diorama: a fixed 3/4 orthographic camera, compact lovable 3D structures, clear silhouettes, readable upgrade additions, and a calm orbital backdrop. Model one cohesive outpost after the whole concept image: central Hangar/landing deck, attached Engineering service wing, connected collector platform, habitation/communications tower, and greenhouse garden plot. These are five tappable areas of one structure, not a grid of independent square tiles. Do not introduce free placement, roads, adjacency bonuses, production chains, or city simulation.
+
+## Whole-outpost composition — owner correction
+
+The whole reference image is the composition target, not just a style cue for
+one building. The four-square prototype is replaced by `station-outpost.js`:
+central enlarged Hangar and landing deck, attached Engineering equipment,
+left habitation/communications tower with solar wing, front-left blue-crystal
+collector installation, and right greenhouse dome/planting beds. Short armored
+links join these areas; gray armor, orange bands, cyan screens and warm lights
+unify them. Tiny astronaut figurines are presentation only. Each area has its
+own raycast identity, including `martian_garden`. Buildings are entered directly
+from the outpost; a compact system selector supports keyboard/screen-reader
+access and renderer failure without a duplicate visible button grid.
+
+Garden is a reserved visual plot: decorative plants are not a maturation or
+harvest system. No new wallet fields, currencies, transactions, hired crew,
+production timers or run modifiers accompany this composition correction.
+The camera save format and protected game/Workshop authorities are unchanged.
+
+## Hangar visual reference — 2026-10-01
+
+The owner's follow-up calls for closer concept fidelity, including the space
+backdrop. The Hangar now has a wider bay mouth, thick chamfered floating platform,
+larger H-marked apron, rim equipment and a small stepped docking extension.
+An orthographic camera at a lower 3/4 angle reveals the real bay depth. Common
+station walkways connect the separate platforms instead of a solid square board.
+The decorative sky combines a locally generated purple-nebula texture, stars,
+faceted orange/blue planets and floating rocks. It stays behind the hub and never
+uses gameplay planet rules. Its texture/geometry/materials share the renderer's
+cleanup lifecycle; there are no external requests, saved sky state or new rewards.
+
+The owner's supplied reference guides the Hangar asset: faceted gray armor,
+orange utility bands, cyan screens/beacons, warm amber bay lights, a genuine
+open chamfered bay, an octagonal landing-pad marking, rooftop operations pod,
+satellite dish, solar cells and small cargo cases. `station-hangar.js` builds
+this as actual modular low-poly geometry with locally owned materials; no image
+backplate or remote textures are used. One bounded point light provides bay
+warmth, without shadows or postprocessing. The apron stays clear for future
+active-ship integration. This changes the Hangar presentation, not station
+progression, ship prices, saves, controls or flight behavior.
 
 ## Foundation candidate behavior
 
 Enter through **Visit your orbital station** on the existing main menu. The main
 menu remains the startup destination while the new hub awaits device acceptance.
-The four plots contain procedural low-poly building prototypes. Hangar opens the
-existing five-ship garage; the other buildings open honest future-system panels.
+The unified composition contains five integrated low-poly areas: central Hangar,
+Engineering wing, Harvester installation, Astronaut tower and Martian greenhouse.
+Hangar opens the existing five-ship garage; the other areas open honest future-system panels.
 There is no active passive income, spending, hiring, or modifier catalog.
 
 The camera supports touch drag, two-finger pinch around the gesture center,
 mouse drag/wheel, keyboard arrows and +/-/Home, and visible zoom/reset controls.
-All buildings also have accessible HTML buttons. Camera framing persists in the
+Buildings use direct taps; a visually hidden system selector appears on keyboard
+focus or renderer failure. Camera framing persists in the
 existing save as `station: { version: 1, camera: { x, z, zoom } }`; old saves gain
 neutral defaults without changing progress, ship/cosmetic ownership, or Workshop.
 
@@ -47,8 +89,9 @@ Candidate checks passed: 56 Node cases, five importer cases and full Chromium
 journeys at 320×568, 360×640 and 412×915. Browser software WebGL checks verify
 interaction and lifecycle, not Android GPU budgets or phone feel.
 
-The current parked ship is a neutral prototype; selection remains in the existing
-Hangar. Matching the displayed 3D ship to the selected silhouette belongs to Phase 2.
+The Hangar now has a clear landing apron rather than the former generic parked
+ship. Displaying the selected 3D ship belongs to Phase 2; selection still works
+through the existing Hangar interface.
 
 ## 3D asset art direction — low-poly arcade
 
@@ -96,7 +139,7 @@ Do not reorganize the existing game merely to match this proposal. Remaining Fou
 
 Foundation modules now implemented (progression transactions remain later work):
 
-- `web/station-catalog.js`: four stable building definitions, fixed plot coordinates, feature keys, and visual-tier definitions. No simulation or DOM dependencies.
+- `web/station-catalog.js`: five stable area definitions, composition coordinates, feature keys, and visual-tier definitions. No simulation or DOM dependencies.
 - `web/station-model.js`: nested version-1 state with a bounded cosmetic camera. Building tiers and producers are not persisted or active yet. Pure logic, independent of scene objects.
 - `web/station-view.js`, `web/station-input.js`, `web/station-ui.js` and `web/station.css`: isolated orthographic 3D scene, camera/gesture ownership, lazy import, selection, and lifecycle cleanup. Callbacks such as `onBuilding` and `onLaunch` connect to the existing orchestrator. Lazy-load on station entry; dispose/pause resources on exit and visibility loss.
 - `web/progression.js` in Phase 2/3: focused candidate-save transactions over the existing save/storage, not a second wallet/store. Commands are synchronous, validate the latest live state, persist a complete candidate, then apply committed fields while retaining the shared save object's identity used by the orchestrator and `Sound`. Legacy room fields pass through unchanged.
@@ -156,7 +199,7 @@ Launch is a persistent, easy-to-reach action. The diorama should invite explorat
 | Stardust Harvester | One capped producer, manual collection, then rate/capacity upgrades. | Collector size, solar panels, storage tanks, activity/fill indicators. |
 | Astronaut Station | Simple hiring and one clear assignment, initially Harvester collection. | Habitation modules, airlock lights, a few visible technicians. |
 
-Foundation may show all four plots, with clear availability states. Unimplemented systems should have honest informational panels rather than functioning purchase buttons or promises of immediate rewards. Availability and unlock order should be set after inspecting current progression; do not add arbitrary gates now.
+Foundation shows the four primary systems and a reserved Garden within one composition, with clear availability states. Unimplemented systems should have honest informational panels rather than functioning purchase buttons or promises of immediate rewards. Availability and unlock order should be set after inspecting current progression; do not add arbitrary gates now.
 
 Each functional building tier should have at least one legible visual change. Derive appearance from persisted tier and unlock state, so reopening the game reconstructs the same station. Reserve attachment points for panels, antennas, greenhouse domes, docking gear, and lights. Separate cosmetic animation from progression state.
 
@@ -198,7 +241,7 @@ Source audit and automated baseline completed at the SHA above. The desktop Chro
 
 ### Phase 1 — Station Foundation
 
-Build a separate hub destination with a small platform and four placeholder structures, fixed plots, orthographic camera, drag/pinch, tap selection, simple feature panels, and launch/return navigation. Use a staged entry point while validating the hub; retain existing home access until the transition is verified. Add only the minimal additive save state needed for this phase. No production, spending, hiring, or gameplay modifiers.
+Build a separate hub destination with one reference-led outpost, four primary system areas and a reserved greenhouse garden, orthographic camera, drag/pinch, tap selection, simple feature panels, and launch/return navigation. Use a staged entry point while validating the hub; retain existing home access until the transition is verified. Add only the minimal additive save state needed for this phase. No production, spending, hiring, or gameplay modifiers.
 
 Exit: station → launch → results → station works; quick retry works; old saves and Workshop remain usable; taps and gestures do not interfere; hub resources do not harm run performance; representative devices meet the existing frame budget. A 3D feasibility failure is resolved here before feature work.
 
@@ -240,7 +283,7 @@ Exit: the station feels pleasant when idle; upgrades are recognizable at normal 
 
 ## Scope decisions
 
-The current implementation is Phase 1 alone, with routing to existing Hangar controls. The first useful progression release is Foundation + Hangar + Harvester, followed by Engineering and Astronauts as separate increments. The architecture supports four primary structures from the start; their functionality arrives in the requested order. Garden and expanded visual life remain subsequent releases.
+The current implementation is Phase 1 alone, with routing to existing Hangar controls. The first useful progression release is Foundation + Hangar + Harvester, followed by Engineering and Astronauts as separate increments. The architecture supports four primary systems plus the reserved Garden within one connected outpost; their functionality arrives in the requested order. The greenhouse, plants and tiny astronauts are decorative now. Garden production and crew functionality remain later releases.
 
 Concrete new costs, production rates, offline limits, upgrade caps, and final art follow measured play/device evidence. The local Three.js renderer is implemented and packaged; target Android performance remains unverified. Foundation has no production economy, station purchases, hiring, building upgrades, or gameplay modifiers. Those features remain future phases.
 

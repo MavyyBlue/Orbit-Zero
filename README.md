@@ -34,10 +34,10 @@ a brief spark and tiny mushroom cloud play before the result screen.
   changing normal records or stardust. See [Workshop guide](docs/WORKSHOP.md).
 - **Hangar:** five small ship silhouettes with previews beside each name, unlocked with collected stars
   (banked as stardust after a run); four achievement badges.
-- **3D station foundation:** open **Visit your orbital station** to explore four
-  low-poly buildings with touch drag/pinch, mouse wheel or keyboard controls.
+- **3D station foundation:** open **Visit your orbital station** to explore one
+  connected low-poly orbital outpost with five tappable areas with touch drag/pinch, mouse wheel or keyboard controls.
   Station launches use existing Voyage/Endless runs and return to the hub.
-  Engineering, Harvester and Astronaut systems are future features. Hangar focuses on ship ownership, selection and unlocking. Ship-room
+  Engineering, Harvester, Astronaut and Garden systems are future features. Hangar focuses on ship ownership, selection and unlocking. Ship-room
   interiors and the decorating shop are retired; existing room data and cosmetic
   ownership remain in saves. See [station plan](docs/STATION_PLAN.md).
 - **Support page:** Lyra and Yuki art, creator information, and a disabled

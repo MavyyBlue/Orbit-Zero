@@ -18,10 +18,7 @@
   <header class="station-header"><div><span class="eyebrow">HOME BETWEEN LAUNCHES</span><h2 id="stationTitle" tabindex="-1">Your little orbit</h2></div><div class="station-balance" aria-label="Stardust balance">✦ <strong id="stationBalance">0</strong></div></header>
   <div id="stationViewport"><div class="station-toolbar"><button id="stationZoomOut" aria-label="Zoom out">−</button><button id="stationReset" aria-label="Reset station view">⌂</button><button id="stationZoomIn" aria-label="Zoom in">+</button></div></div>
   <div class="station-controls"><p id="stationHint" role="status" aria-live="polite">Preparing your orbital home…</p>
-    <nav class="station-buildings" aria-label="Station buildings">
-      <button id="station-hangar">Hangar<small>Your fleet</small></button><button id="station-engineering_bay">Engineering Bay<small>Future upgrades</small></button>
-      <button id="station-stardust_harvester">Stardust Harvester<small>Future production</small></button><button id="station-astronaut_station">Astronaut Station<small>Future technicians</small></button>
-    </nav>
+    <select id="stationAccess" class="station-access" aria-label="Open station system"><option value="">Open station system…</option><option value="hangar">Hangar</option><option value="engineering_bay">Engineering Bay</option><option value="stardust_harvester">Stardust Harvester</option><option value="astronaut_station">Astronaut Station</option><option value="martian_garden">Martian Garden</option></select>
     <div class="station-launch-row"><button id="stationVoyage" class="primary">Launch voyage</button><button id="stationEndless">Endless</button></div>
     <nav class="station-links" aria-label="Station navigation"><button id="stationMenu">Main menu</button><button id="stationWorkshop">Workshop</button><button id="stationSettings">Settings</button></nav>
   </div>

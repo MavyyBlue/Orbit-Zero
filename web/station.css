@@ -1,4 +1,4 @@
-#station { background:radial-gradient(ellipse at 55% 38%,#233a5a,#111b32 58%,#080e1c); overflow:hidden; }
+#station { background:radial-gradient(ellipse at 75% 28%,#24143e,#0b132a 58%,#050b19); overflow:hidden; }
 .station-header { padding:max(18px,env(safe-area-inset-top)) 22px 8px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .station-header h2 { margin:5px 0 0; font-size:30px; letter-spacing:-1px; }
 .station-balance { padding:9px 12px; border:1px solid #557b8c; border-radius:30px; color:#a1f5df; background:#162a40; font-variant-numeric:tabular-nums; white-space:nowrap; }
@@ -8,13 +8,9 @@
 .station-toolbar button { width:44px; min-height:44px; padding:8px; border-radius:14px; background:#14253ce6; font-size:18px; }
 .station-controls { padding:0 20px max(14px,env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:9px; }
 #stationHint { margin:0; color:#bacde2; font-size:11px; text-align:center; min-height:16px; }
-.station-buildings { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
-.station-buildings button { display:flex; flex-direction:column; align-items:flex-start; padding:10px 12px; min-height:51px; text-align:left; border-radius:15px; font-size:12px; background:#1a2b43; }
-.station-buildings small { margin-top:3px; color:#afc0d6; font-size:10px; font-weight:400; }
-#station-hangar { border-color:#75cfc1; color:#a0f3df; }
-#station-engineering_bay { border-color:#9078b7; color:#d7c4ff; }
-#station-stardust_harvester { border-color:#bca270; color:#ffe3a8; }
-#station-astronaut_station { border-color:#bc816e; color:#ffbca6; }
+/* Hidden in the touch layout; available on keyboard focus or renderer failure. */
+.station-access { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); }
+.station-access:focus, .station-access[data-fallback=true] { position:static; width:100%; height:44px; padding:8px 12px; overflow:visible; clip-path:none; border:1px solid #628c8c; border-radius:12px; color:#b1ffe6; background:#14253c; }
 .station-launch-row { display:flex; gap:8px; }
 .station-launch-row button.primary { flex:1; min-height:51px; font-size:17px; }
 .station-launch-row #stationEndless { width:98px; min-height:51px; font-size:12px; }
@@ -23,4 +19,4 @@
 #stationEntry { width:100%; min-height:44px; padding:10px; font-size:13px; color:#b1ffe6; border-color:#628c8c; }
 #stationViewport[data-renderer=fallback]::before,#stationViewport[data-renderer=lost]::before { content:'Your orbital home'; position:absolute; inset:0; display:grid; place-items:center; color:#b9d9e5; font-size:23px; pointer-events:none; }
 .station-building-panel { border-top:3px solid #8ff4e0; padding-top:22px; }
-@media(max-height:620px) { .station-header { padding-top:12px; } .station-header h2 { font-size:24px; } .station-controls { gap:5px; padding-bottom:8px; } .station-buildings button { padding:7px 10px; min-height:46px; } #stationViewport { min-height:120px; } }
+@media(max-height:620px) { .station-header { padding-top:12px; } .station-header h2 { font-size:24px; } .station-controls { gap:5px; padding-bottom:8px; } #stationViewport { min-height:120px; } }

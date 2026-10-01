@@ -1,6 +1,6 @@
 # Station Foundation source candidate — 2026-09-30
 
-Local source ZIP: `Orbit-Zero-Station-Foundation.zip`. The complete package
+Local source ZIP: `orbit-zero-source.zip` (updated October 1 with the unified reference-led outpost). The complete package
 includes Foundation, the station plan, interior retirement, and prior source.
 It contains source, not an APK. No remote commit, upload or deployment was made.
 
@@ -15,7 +15,7 @@ and protected-source preservation are checked with `scripts/verify_package.py`.
 Three.js r170 and its MIT license ship locally. Android build/lint and physical
 WebView/device checks are outstanding; no store-ready or phone acceptance is claimed.
 
-Next phase is Hangar integration after reviewing Foundation. Economy, Engineering,
+Review the connected outpost Foundation before expanding Hangar integration. Economy, Engineering,
 technicians and Garden remain deliberately inactive. See STATION_PLAN.md and QA.md.
 
 ---
